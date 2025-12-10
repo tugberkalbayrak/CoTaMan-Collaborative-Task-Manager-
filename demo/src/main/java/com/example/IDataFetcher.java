@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 public interface IDataFetcher {
     /*Scrapes and returns a list of deadlines, exams, or lectures. */
-    public ArrayList<CalendarEvent> fetchEvents();
+    ArrayList<CalendarEvent> fetchEvents();
 
     /*Scrapes and returns course materials (PDFs, slides). */
-    public ArrayList<AcademicFile> fetchFiles();
+    ArrayList<AcademicFile> fetchFiles();
 } 
