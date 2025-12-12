@@ -59,13 +59,13 @@ public class CalendarScraper implements IDataFetcher {
                         newEvent.setEndTime(eventDate.plusHours(1)); // Default duration
 
                         criticalEvents.add(newEvent);
-                        System.out.println("✅ Scraped: " + description + " on " + eventDate.toLocalDate());
+                        System.out.println("Scraped: " + description + " on " + eventDate.toLocalDate());
                     }
                 }
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Error scraping calendar: " + e.getMessage());
+            System.err.println("Error scraping calendar: " + e.getMessage());
             e.printStackTrace();
         }
 
