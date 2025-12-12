@@ -19,13 +19,13 @@ public class CalendarScraper implements IDataFetcher {
 
     // Keywords to filter only the critical events you asked for
     private static final String[] CRITICAL_KEYWORDS = {
-            "Holiday", "Registration", "Drop deadline", "Add deadline",
-            "Withdraw", "Grades Announced", "Classes Begin", "Final Examinations"
+            "Holiday", "Registration", "Deadline", "Add", "Drop",
+            "Withdraw", "Grades Announced", "Classes Begin", "Final"
     };
 
     @Override
-    public ArrayList<Event> fetchEvents() {
-        ArrayList<Event> criticalEvents = new ArrayList<>();
+    public ArrayList<CalendarEvent> fetchEvents() {
+        ArrayList<CalendarEvent> criticalEvents = new ArrayList<>();
 
         try {
             // 1. Connect and Download HTML
@@ -48,7 +48,7 @@ public class CalendarScraper implements IDataFetcher {
 
                         // 4. Create the Event object
                         // Note: We use a helper method to handle date ranges
-                        Event newEvent = new Event();
+                        CalendarEvent newEvent = new CalendarEvent();
                         newEvent.setTitle(description);
                         newEvent.setImportance(Importance.MUST); // Academic dates are high priority
                         newEvent.setLocation("Bilkent"); // Default location
