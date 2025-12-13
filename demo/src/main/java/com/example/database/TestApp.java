@@ -14,7 +14,7 @@ public class TestApp {
         MongoCollection<User> userCollection = db.getCollection("users", User.class);
 
         // 3. Veri Ekle
-        User yeniUser = new User("Test Kullanicisi", "test@bilkent.edu.tr");
+        User yeniUser = new User("Test Kullanicisi", "osurdum");
         userCollection.insertOne(yeniUser);
         System.out.println("Kayıt Eklendi: " + yeniUser);
     }
