@@ -35,5 +35,30 @@ public class SRSScraper implements IDataFetcher {
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
+
+    public void sendLoginRequest(String ID, String password) {
+
+        try {
+            System.out.println("Fetching login token from SRS...");
+
+            HttpRequest getRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(SRS_LOGIN_URL))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> getResponse = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+            String loginPageHtml = getResponse.body();
+
+            Document doc = Jsoup.parse(loginPageHtml);
+            Element tokenInput = doc.selectFirst("input[name=LoginForm[username]]");
+
+            if (tokenInput == null) {
+                System.err.println("Could not find login token. Moodle structure might have changed.");
+                return false;
+            }
+            
+
+        }
+    }
     
 }

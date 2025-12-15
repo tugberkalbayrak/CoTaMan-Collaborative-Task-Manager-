@@ -86,7 +86,7 @@ public class MoodleScraper implements IDataFetcher {
                     .POST(HttpRequest.BodyPublishers.ofString(formBody))
                     .build();
 
-            System.out.println("🚀 Sending login request...");
+            System.out.println("Sending login request...");
             HttpResponse<String> postResponse = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
 
             // Step C: Verify success
@@ -141,7 +141,7 @@ public class MoodleScraper implements IDataFetcher {
                 eventCards = doc.select("div[data-region='event-item']");
             }
 
-            System.out.println("🔎 Found " + eventCards.size() + " raw event elements.");
+            System.out.println("Found " + eventCards.size() + " raw event elements.");
 
             for (Element card : eventCards) {
                 String title = card.select("h3.name").text(); // Title usually in h3
@@ -161,7 +161,7 @@ public class MoodleScraper implements IDataFetcher {
                 event.setEndTime(event.getStartTime().plusHours(1)); // Default 1 hour duration
                 
                 moodleEvents.add(event);
-                System.out.println("✅ Scraped Assignment: " + event.getTitle() + " Due: " + event.getStartTime());
+                System.out.println("Scraped Assignment: " + event.getTitle() + " Due: " + event.getStartTime());
                 
                 moodleEvents.add(event);
                 System.out.println("Scraped Assignment: " + title);
@@ -227,7 +227,7 @@ public class MoodleScraper implements IDataFetcher {
             return LocalDateTime.parse(dateWithYear, formatter);
 
         } catch (Exception e) {
-            System.err.println("⚠️ Could not parse date: '" + rawDate + "' -> Using NOW.");
+            System.err.println("Could not parse date: '" + rawDate + "' -> Using NOW.");
             return LocalDateTime.now();
         }
     }
