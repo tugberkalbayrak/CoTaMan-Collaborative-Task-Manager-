@@ -3,7 +3,10 @@ package com.example.WebScraping;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import com.example.Entity.*;
+// import com.example.Entity.*; // Keep if you use Entity classes
+
+import com.example.Entity.CalendarEvent;
+import com.example.Entity.Importance;
 
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -13,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,168 +24,239 @@ import java.util.Scanner;
 
 public class SRSScraper {
 
+    // URL constants
     private static final String STARS_BASE_URL = "https://stars.bilkent.edu.tr";
     private static final String SRS_LOGIN_URL = STARS_BASE_URL + "/accounts/login";
     private static final String SRS_SMS_VER_URL = STARS_BASE_URL + "/accounts/auth/verifySms";
 
     private HttpClient client;
     private CookieManager cookieManager;
-    private boolean isLoggedIn = false;
 
     public SRSScraper() {
         this.cookieManager = new CookieManager();
         this.cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 
-        this.client = HttpClient.newBuilder().cookieHandler(this.cookieManager)
+        this.client = HttpClient.newBuilder()
+                .cookieHandler(this.cookieManager)
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 
-    /**
-     * MASTER METHOD: The only one you call from your main app.
-     * It orchestrates the entire flow.
-     */
-    public boolean performFullLogin(String username, String password) throws Exception {
-        
-        // Step 1: Send the login request and CATCH the result
-        HttpResponse<String> loginResponse = sendLoginRequest(username, password);
-        String responseHtml = loginResponse.body();
-        Scanner scn = new Scanner(System.in);
+    // --- MASTER METHOD ---
+    public boolean performFullLogin(String username, String password) {
+        try {
+            // Step 1: Send Login Request
+            HttpResponse<String> response = sendLoginRequest(username, password);
+            String responseHtml = response.body();
 
-        // Step 2: Check if we are done or if we need SMS
-        if (responseHtml.contains("verification code")) {
-            System.out.println("Enter SMS: ");
-            String smsCode = scn.next();
-            smsCode = smsCode.trim();
-            
-            // PASS the HTML we just got into the next method
-            return verifySMSCode(responseHtml, smsCode); 
-            
-        } else if (responseHtml.contains("Welcome")) {
-            System.out.println(">> Login successful! No SMS needed.");
-            return true;
-        } else {
-            System.out.println(">> Login failed. Check credentials.");
+            // Step 2: Analyze the result
+            // Case A: Immediate Success (No SMS)
+            if (responseHtml.contains("Welcome") || responseHtml.contains("Log Out")) {
+                System.out.println(">> Login successful! No SMS needed.");
+                return true;
+            }
+            // Case B: SMS Required
+            // (Note: Check for unique keywords on the SMS page, like 'verification code' or
+            // the specific form ID)
+            else if (responseHtml.contains("verification code") || response.uri().toString().contains("verifySms")) {
+                System.out.println(">> SMS Verification Required!");
+
+                // Get code from user (Scanner logic here is fine for testing)
+                Scanner scn = new Scanner(System.in);
+                System.out.print("Enter SMS Code: ");
+                String smsCode = scn.nextLine().trim();
+
+                return verifySMSCode(responseHtml, smsCode);
+            }
+            // Case C: Failure
+            else {
+                System.err.println(">> Login failed. Invalid credentials or unknown page.");
+                return false;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
 
-    public HttpResponse<String> sendLoginRequest(String ID, String password) {
+    // --- STEP 1: LOGIN ---
+    private HttpResponse<String> sendLoginRequest(String ID, String password) throws Exception {
+        System.out.println("1. Fetching SRS Login Page...");
+
+        // A. GET the login page
+        HttpRequest getRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://stars.bilkent.edu.tr/srs/"))
+                .GET()
+                .build();
+
+        HttpResponse<String> getResponse = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+        String html = getResponse.body();
+        Document doc = Jsoup.parse(html);
+
+        // B. The "Vacuum Cleaner": Collect ALL hidden inputs automatically
+        Map<String, String> formData = new HashMap<>();
+
+        // Find every <input> tag that is hidden
+        for (Element input : doc.select("input[type=hidden]")) {
+            String name = input.attr("name");
+            String value = input.attr("value");
+
+            if (!name.isEmpty()) {
+                formData.put(name, value);
+                System.out.println(">> Found Hidden Token: " + name + " = " + value); // Debugging
+            }
+        }
+
+        // C. Add the Credentials (User Input)
+        // We already confirmed these names in your screenshot!
+        formData.put("LoginForm[username]", ID);
+        formData.put("LoginForm[password]", password);
+        formData.put("yt0", "Login"); // The button name
+
+        String formBody = buildFormData(formData);
+
+        // D. Send POST
+        System.out.println("2. Sending Credentials...");
+        HttpRequest postRequest = HttpRequest.newBuilder()
+                .uri(URI.create(SRS_LOGIN_URL))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(formBody))
+                .build();
+
+        return client.send(postRequest, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // --- STEP 2: SMS VERIFICATION ---
+    private boolean verifySMSCode(String smsPageHtml, String smsCode) throws Exception {
+        System.out.println("3. Verifying SMS Code...");
+
+        Document doc = Jsoup.parse(smsPageHtml);
+
+        // 1. The "Vacuum Cleaner": Collect ALL hidden inputs automatically
+        // (This replaces the __VIEWSTATE code that was crashing)
+        Map<String, String> formData = new HashMap<>();
+
+        for (Element input : doc.select("input[type=hidden]")) {
+            String name = input.attr("name");
+            String value = input.attr("value");
+
+            if (!name.isEmpty()) {
+                formData.put(name, value);
+                // Debugging: see what hidden token the SMS page uses
+                System.out.println(">> SMS Page Hidden Token: " + name);
+            }
+        }
+
+        // 2. Add the User's SMS Code
+        // It is likely "SmsVerifyForm[verifyCode]" or just "verifyCode"
+        formData.put("SmsVerifyForm[verifyCode]", smsCode);
+        // 3. Add the Verify Button (if it has a name)
+        // Check if the "Verify" button has a name like "yt0" or "submit"
+        formData.put("yt0", "Verify");
+
+        String formBody = buildFormData(formData);
+
+        // 4. Send POST
+        // IMPORTANT: Check the URL bar when you are on the SMS page.
+        // Is it still /accounts/login or did it change to /accounts/auth/verifySms?
+        HttpRequest postRequest = HttpRequest.newBuilder()
+                .uri(URI.create(SRS_SMS_VER_URL))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Referer", SRS_SMS_VER_URL)
+                .POST(HttpRequest.BodyPublishers.ofString(formBody))
+                .build();
+
+        HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
+
+        // 5. Check Final Success
+        if (response.body().contains("STARS::SRS") || response.body().contains("xenon")) {
+            System.out.println(">> SMS Verified Successfully! We are in!");
+            
+            return true;
+        } else {
+            System.err.println(">> SMS Verification Failed.");
+
+            // --- NEW DEBUGGING LINES ---
+            System.out.println("--- SERVER RESPONSE TEXT ---");
+            // This strips out all HTML tags and leaves just the words
+            String cleanText = Jsoup.parse(response.body()).text();
+            System.out.println(cleanText);
+            System.out.println("----------------------------");
+            // ---------------------------
+
+            return false;
+        }
+    }
+
+    /**
+     * Phase 3: Fetching Exams from the v2 System
+     * URL Source: https://stars.bilkent.edu.tr/srs-v2/exams/finals
+     */
+    public ArrayList<CalendarEvent> fetchExams() {
+        ArrayList<CalendarEvent> examEvents = new ArrayList<>();
 
         try {
-            System.out.println("Fetching login token from SRS...");
+            System.out.println("5. Fetching Exams...");
+            String examsUrl = "https://stars.bilkent.edu.tr/srs-v2/exams/finals";
 
-            HttpRequest getRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(SRS_LOGIN_URL))
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(examsUrl))
+                    .header("Referer", "https://stars.bilkent.edu.tr/srs/")
                     .GET()
                     .build();
 
-            HttpResponse<String> getResponse = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
-            String loginPageHtml = getResponse.body();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            Document doc = Jsoup.parse(loginPageHtml);
-            Element tokenInput = doc.selectFirst("input[name=LoginForm[username]]");
-            Element viewStateElement = doc.selectFirst("input[name=__VIEWSTATE]");
-            Element eventValidationElement = doc.selectFirst("input[name=__EVENTVALIDATION]");
-
-            if (tokenInput == null) {
-                System.err.println("Could not find login token. SRS structure might have changed.");
+            if (!response.body().contains("Exams/Activities")) {
+                System.err.println(">> Failed to reach Exams page.");
+                return examEvents;
             }
 
-            // 4. Get the value inside the tags
-            String viewState = viewStateElement.val();
-            String eventValidation = eventValidationElement.val();
-            String loginToken = tokenInput.val();
-            System.out.println("Token found: " + loginToken.substring(0, 10) + "...");
+            Document doc = Jsoup.parse(response.body());
 
-            // Step B: POST the credentials + token
-            // We need to format data as: username=abc&password=123&logintoken=xyz
-            Map<String, String> formData = new HashMap<>();
-            formData.put("username", ID);
-            formData.put("password", password);
-            formData.put("logintoken", loginToken);
-            formData.put("__VIEWSTATE", viewState);
-            formData.put("__EVENTVALIDATION", eventValidation);
+            // Iterate through the rows of the exam table
+            for (Element row : doc.select("table.table-striped tbody tr")) {
+                org.jsoup.select.Elements cols = row.select("td");
 
-            String formBody = buildFormData(formData);
+                if (cols.size() < 5)
+                    continue; // Skip malformed rows
 
-            HttpRequest postRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(SRS_LOGIN_URL))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(HttpRequest.BodyPublishers.ofString(formBody))
-                    .build();
+                // 1. Extract Raw Strings
+                String courseCode = cols.get(1).text(); // "MATH 132 - 002"
+                String type = cols.get(2).text(); // "Midterm"
+                String name = cols.get(3).text(); // "MT1"
+                String rawTime = cols.get(4).text(); // "16.10.2025 19:30 - 21:30"
+                String classrooms = cols.get(6).text(); // "B-Z05, B-101..."
 
-            System.out.println("Sending login request...");
-            HttpResponse<String> postResponse = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
+                // 2. Parse Dates (Using the helper method below)
+                LocalDateTime[] times = parseExamTime(rawTime);
+                if (times == null)
+                    continue; // Skip if date format is weird
 
-            // Step C: Verify success
-            // If login fails, Moodle usually keeps you on the login page containing "Invalid login"
-            if (postResponse.body().contains("SMS Verification")) {
-                return postResponse;
-            } else {
-                System.err.println("Login Failed. Check credentials.");
-                return null;
+                // 3. Create a Descriptive Title
+                // e.g., "MATH 132 - Midterm (MT1)"
+                String eventTitle = courseCode.split("-")[0].trim() + " - " + type + " (" + name + ")";
+
+
+                // 5. Create and Add the Object
+                // Assuming your CalendarEvent constructor looks like: (Title, Start, End,
+                // Description)
+                CalendarEvent event = new CalendarEvent(eventTitle, times[0], times[1], Importance.MUST);
+
+                examEvents.add(event);
+                System.out.println(">> Added Event: " + eventTitle + " on " + times[0]);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
-        
+
+        return examEvents;
     }
 
-    public boolean verifySMSCode(String postResponse, String smsCode) {
-        try {
-            Document doc = Jsoup.parse(postResponse);
-            Element tokenInput = doc.selectFirst("input[name=SmsVerifyForm[verifyCode]]");
-            Element viewStateElement = doc.selectFirst("input[name=__VIEWSTATE]");
-            Element eventValidationElement = doc.selectFirst("input[name=__EVENTVALIDATION]");
-
-            // 4. Get the value inside the tags
-            String viewState = viewStateElement.val();
-            String eventValidation = eventValidationElement.val();
-            String loginToken = tokenInput.val();
-            System.out.println("Token found: " + loginToken.substring(0, 10) + "...");
-
-            // Step B: POST the credentials + token
-            // We need to format data as: username=abc&password=123&logintoken=xyz
-            Map<String, String> formData = new HashMap<>();
-            formData.put("SMS Code", smsCode);
-            formData.put("logintoken", loginToken);
-            formData.put("__VIEWSTATE", viewState);
-            formData.put("__EVENTVALIDATION", eventValidation);
-
-            String formBody = buildFormData(formData);
-
-            HttpRequest postRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(SRS_SMS_VER_URL))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(HttpRequest.BodyPublishers.ofString(formBody))
-                    .build();
-
-            System.out.println("Sending login request...");
-            HttpResponse<String> mainPage = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
-
-            // Step C: Verify success
-            // If login fails, Moodle usually keeps you on the login page containing "Invalid login"
-            if (mainPage.body().contains("Student Academic Information Registration System")) {
-                this.isLoggedIn = true;
-                return true;
-            } else {
-                System.err.println("Login Failed. Check credentials.");
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-            
-
-
-    }
-
-    // Helper to turn a Map into "key=value&key2=value2" string
+    // Helper (Unchanged)
     private String buildFormData(Map<String, String> data) {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : data.entrySet()) {
@@ -194,4 +269,36 @@ public class SRSScraper {
         return builder.toString();
     }
 
+    /**
+     * Helper to parse string: "16.10.2025 19:30 - 21:30"
+     * Returns an array where [0] is Start Time and [1] is End Time
+     */
+    private LocalDateTime[] parseExamTime(String rawString) {
+        try {
+            // rawString format: "dd.MM.yyyy HH:mm - HH:mm"
+            // Example: "16.10.2025 19:30 - 21:30"
+
+            String[] parts = rawString.split(" - ");
+            String dateAndStart = parts[0]; // "16.10.2025 19:30"
+            String endTimeOnly = parts[1]; // "21:30"
+
+            // 1. Parse Start Time
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            LocalDateTime start = LocalDateTime.parse(dateAndStart, formatter);
+
+            // 2. Parse End Time
+            // We take the date from the 'start' object and combine it with the new time
+            String[] endParts = endTimeOnly.split(":");
+            int endHour = Integer.parseInt(endParts[0]);
+            int endMinute = Integer.parseInt(endParts[1]);
+
+            LocalDateTime end = start.withHour(endHour).withMinute(endMinute);
+
+            return new LocalDateTime[] { start, end };
+
+        } catch (Exception e) {
+            System.err.println(">> Could not parse date: " + rawString);
+            return null;
+        }
+    }
 }
