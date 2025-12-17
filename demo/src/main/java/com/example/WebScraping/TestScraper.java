@@ -1,6 +1,7 @@
 package com.example.WebScraping;
 
 import com.example.Entity.CalendarEvent; // Import your entity
+import com.example.Entity.WeeklyLecture;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -44,6 +45,18 @@ public class TestScraper {
                     }
                     System.out.println("------------------------------------------------");
                 }
+                // 5. Fetch and Print Weekly Schedule
+                System.out.println("\n--- FETCHING WEEKLY SCHEDULE ---");
+                ArrayList<WeeklyLecture> schedule = scraper.fetchWeeklySchedule();
+                if (schedule.isEmpty()) {
+                    System.out.println("No weekly lectures found (or parsing failed).");
+                } else {
+                    System.out.println("Found " + schedule.size() + " weekly lectures:");
+                    for (WeeklyLecture lecture : schedule) {
+                        System.out.println(lecture);
+                    }
+                }
+
             } else {
                 System.err.println("Login Failed. Cannot fetch exams.");
             }

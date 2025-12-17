@@ -9,8 +9,14 @@ module com.example {
     requires org.slf4j;
 
     opens com.example to javafx.fxml;
+
     exports com.example;
 
     exports com.example.database;
+
     opens com.example.database to org.mongodb.bson;
+
+    exports com.example.Entity;
+
+    opens com.example.Entity to org.mongodb.bson;
 }
