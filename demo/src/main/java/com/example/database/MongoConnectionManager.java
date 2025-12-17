@@ -20,14 +20,14 @@ public class MongoConnectionManager {
     private MongoDatabase database;
 
     private MongoConnectionManager() {
-        // Config dosyasını oku
+        
         
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
             
             String connectionString = "mongodb+srv://admin:sifre123@cotaman.2gv2vue.mongodb.net/?appName=Cotaman";
             String dbName = "Cotaman";
 
-            // POJO (Java Nesnesi) desteğini aç
+            
             CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
             CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
 

@@ -5,10 +5,10 @@ import org.bson.types.ObjectId;
 public class ArchiveFile {
     private ObjectId id;
     private String fileName;
-    private String downloadLink; // Dosyanın internetteki veya bilgisayardaki yeri
-    private ObjectId uploaderId; // Kim yükledi?
-    private FileType type;       // Enum
-    private Visibility visibility; // Enum
+    private String downloadLink; 
+    private ObjectId uploaderId; 
+    private FileType type;      
+    private Visibility visibility; 
 
     public ArchiveFile() {}
 

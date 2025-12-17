@@ -8,11 +8,11 @@ public class TestApp {
 
         CloudRepository repo = new CloudRepository();
 
-        // 1. Kullanıcı Oluştur
+        
         User u1 = new User("Zeynep Hoca", "zeynep@bilkent.edu.tr");
-        repo.saveUser(u1); // MongoDB buna otomatik ID verir
+        repo.saveUser(u1); 
 
-        // 2. Bu kullanıcıya bir Ders (Event) Ekle
+       
         Event ders = new Event(
             u1.getId(), 
             "CS102 Dersi", 
@@ -23,11 +23,11 @@ public class TestApp {
         );
         repo.saveEvent(ders);
 
-        // 3. Kullanıcının Etkinliklerini Listele
+        
         List<Event> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
         System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
 
-        // 4. Bir Dosya Yükle
+       
         ArchiveFile notlar = new ArchiveFile(
             "Hafta_1_Notlari.pdf", 
             "C:/Belgelerim/Notlar.pdf", 
