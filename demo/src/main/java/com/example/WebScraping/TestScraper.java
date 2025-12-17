@@ -38,14 +38,14 @@ public class TestScraper {
                     for (CalendarEvent exam : exams) {
                         System.out.println("------------------------------------------------");
                         // Assuming your CalendarEvent has these getters or a toString()
-                        System.out.println("Title:       " + exam.getTitle()); 
+                        System.out.println("Title:       " + exam.getTitle());
                         System.out.println("Start Time:  " + exam.getStartTime());
                         System.out.println("End Time:    " + exam.getEndTime());
                     }
                     System.out.println("------------------------------------------------");
                 }
             } else {
-                System.err.println(">> Login Failed. Cannot fetch exams.");
+                System.err.println("Login Failed. Cannot fetch exams.");
             }
 
         } catch (Exception e) {

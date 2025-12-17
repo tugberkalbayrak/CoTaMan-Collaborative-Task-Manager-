@@ -46,32 +46,24 @@ public class SRSScraper {
     // --- MASTER METHOD ---
     public boolean performFullLogin(String username, String password) {
         try {
-            // Step 1: Send Login Request
+            // Here we are sending login request using our method
             HttpResponse<String> response = sendLoginRequest(username, password);
             String responseHtml = response.body();
 
-            // Step 2: Analyze the result
-            // Case A: Immediate Success (No SMS)
-            if (responseHtml.contains("Welcome") || responseHtml.contains("Log Out")) {
-                System.out.println(">> Login successful! No SMS needed.");
-                return true;
-            }
-            // Case B: SMS Required
-            // (Note: Check for unique keywords on the SMS page, like 'verification code' or
-            // the specific form ID)
-            else if (responseHtml.contains("verification code") || response.uri().toString().contains("verifySms")) {
-                System.out.println(">> SMS Verification Required!");
+            // Here we are analyzing the result
+            if (responseHtml.contains("verification code") || response.uri().toString().contains("verifySms")) {
+                System.out.println("SMS Verification Required!");
 
-                // Get code from user (Scanner logic here is fine for testing)
+                // Get code from user (Scanner logic here is for testing)
                 Scanner scn = new Scanner(System.in);
                 System.out.print("Enter SMS Code: ");
                 String smsCode = scn.nextLine().trim();
 
                 return verifySMSCode(responseHtml, smsCode);
             }
-            // Case C: Failure
+            // If we get here, login failed
             else {
-                System.err.println(">> Login failed. Invalid credentials or unknown page.");
+                System.err.println("Login failed. Invalid credentials or unknown page.");
                 return false;
             }
 
@@ -81,11 +73,12 @@ public class SRSScraper {
         }
     }
 
-    // --- STEP 1: LOGIN ---
+    // This method manages the login process
     private HttpResponse<String> sendLoginRequest(String ID, String password) throws Exception {
-        System.out.println("1. Fetching SRS Login Page...");
+        System.out.println("Fetching SRS Login Page...");
 
-        // A. GET the login page
+        // Here we are sending a get request to the login page, so that we see the login
+        // page.
         HttpRequest getRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://stars.bilkent.edu.tr/srs/"))
                 .GET()
@@ -95,29 +88,27 @@ public class SRSScraper {
         String html = getResponse.body();
         Document doc = Jsoup.parse(html);
 
-        // B. The "Vacuum Cleaner": Collect ALL hidden inputs automatically
         Map<String, String> formData = new HashMap<>();
 
-        // Find every <input> tag that is hidden
+        // Find every <input> tag that is hidden, these fields are required for post
+        // request.
         for (Element input : doc.select("input[type=hidden]")) {
             String name = input.attr("name");
             String value = input.attr("value");
 
             if (!name.isEmpty()) {
                 formData.put(name, value);
-                System.out.println(">> Found Hidden Token: " + name + " = " + value); // Debugging
             }
         }
 
-        // C. Add the Credentials (User Input)
-        // We already confirmed these names in your screenshot!
+        // We are gathering data for formating to send a post request
         formData.put("LoginForm[username]", ID);
         formData.put("LoginForm[password]", password);
         formData.put("yt0", "Login"); // The button name
 
         String formBody = buildFormData(formData);
 
-        // D. Send POST
+        // Here we are sending the post request
         System.out.println("2. Sending Credentials...");
         HttpRequest postRequest = HttpRequest.newBuilder()
                 .uri(URI.create(SRS_LOGIN_URL))
@@ -128,14 +119,13 @@ public class SRSScraper {
         return client.send(postRequest, HttpResponse.BodyHandlers.ofString());
     }
 
-    // --- STEP 2: SMS VERIFICATION ---
+    // This method handles the SMS verification process
     private boolean verifySMSCode(String smsPageHtml, String smsCode) throws Exception {
         System.out.println("3. Verifying SMS Code...");
 
         Document doc = Jsoup.parse(smsPageHtml);
 
-        // 1. The "Vacuum Cleaner": Collect ALL hidden inputs automatically
-        // (This replaces the __VIEWSTATE code that was crashing)
+        // We are finding all hidden inputs again
         Map<String, String> formData = new HashMap<>();
 
         for (Element input : doc.select("input[type=hidden]")) {
@@ -144,23 +134,17 @@ public class SRSScraper {
 
             if (!name.isEmpty()) {
                 formData.put(name, value);
-                // Debugging: see what hidden token the SMS page uses
-                System.out.println(">> SMS Page Hidden Token: " + name);
             }
         }
 
-        // 2. Add the User's SMS Code
-        // It is likely "SmsVerifyForm[verifyCode]" or just "verifyCode"
+        // We are adding the users SMS code
         formData.put("SmsVerifyForm[verifyCode]", smsCode);
-        // 3. Add the Verify Button (if it has a name)
-        // Check if the "Verify" button has a name like "yt0" or "submit"
+        // We are adding the Verify button name
         formData.put("yt0", "Verify");
 
         String formBody = buildFormData(formData);
 
-        // 4. Send POST
-        // IMPORTANT: Check the URL bar when you are on the SMS page.
-        // Is it still /accounts/login or did it change to /accounts/auth/verifySms?
+        // Here we are sending the post request
         HttpRequest postRequest = HttpRequest.newBuilder()
                 .uri(URI.create(SRS_SMS_VER_URL))
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -170,35 +154,23 @@ public class SRSScraper {
 
         HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
 
-        // 5. Check Final Success
+        // We are checking if the login was successful
         if (response.body().contains("STARS::SRS") || response.body().contains("xenon")) {
-            System.out.println(">> SMS Verified Successfully! We are in!");
+            System.out.println("SMS Verified Successfully! We are in!");
 
             return true;
         } else {
-            System.err.println(">> SMS Verification Failed.");
-
-            // --- NEW DEBUGGING LINES ---
-            System.out.println("--- SERVER RESPONSE TEXT ---");
-            // This strips out all HTML tags and leaves just the words
-            String cleanText = Jsoup.parse(response.body()).text();
-            System.out.println(cleanText);
-            System.out.println("----------------------------");
-            // ---------------------------
-
+            System.err.println("SMS Verification Failed.");
             return false;
         }
     }
 
-    /**
-     * Phase 3: Fetching Exams from the v2 System
-     * URL Source: https://stars.bilkent.edu.tr/srs-v2/exams/finals
-     */
+    // This method fetches exams from the v2 system
     public ArrayList<CalendarEvent> fetchExams() {
         ArrayList<CalendarEvent> examEvents = new ArrayList<>();
 
         try {
-            System.out.println("5. Fetching Exams...");
+            System.out.println("Fetching Exams...");
             String examsUrl = "https://stars.bilkent.edu.tr/srs-v2/exams/finals";
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -210,49 +182,32 @@ public class SRSScraper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (!response.body().contains("Exams/Activities")) {
-                System.err.println(">> Failed to reach Exams page. Body snippet: "
-                        + response.body().substring(0, Math.min(500, response.body().length())));
+                System.err.println(">> Failed to reach Exams page.");
                 return examEvents;
             }
 
             Document doc = Jsoup.parse(response.body());
-            System.out.println(">> Exams page parsed. Title: " + doc.title());
 
-            // DEBUG: Print all tables found
-            org.jsoup.select.Elements allTables = doc.select("table");
-            System.out.println(">> Debug: Found " + allTables.size() + " tables.");
-            for (Element t : allTables) {
-                System.out.println("   - Table: Class='" + t.className() + "', ID='" + t.id() + "'");
-            }
-
-            // 1. Get the table directly (we know there is 1 or at least the first one is
-            // likely it)
+            // We are getting the table directly
             Element table = doc.selectFirst("table");
             if (table == null) {
                 System.err.println(">> No table found in the HTML!");
                 return examEvents;
             }
 
-            // DEBUG: Print start of table HTML to see structure
-            String tableHtml = table.html();
-            System.out.println(">> Table HTML snippet: "
-                    + tableHtml.substring(0, Math.min(300, tableHtml.length())).replace("\n", " "));
-
-            // 2. Select ALL rows (skip tbody check to be safe)
+            // We are selecting all rows (skip tbody check to be safe)
             org.jsoup.select.Elements rows = table.select("tr");
-            System.out.println(">> Found " + rows.size() + " total rows in table.");
 
             // Iterate through the rows
             for (Element row : rows) {
-                // Fix: Select both td and th (some tables use th for body cells)
+                // We are selecting both td and th (some tables use th for body cells)
                 org.jsoup.select.Elements cols = row.select("td, th");
 
                 if (cols.size() < 5) {
-                    // It's likely a header row or empty
                     continue;
                 }
 
-                // 1. Extract Raw Strings
+                // Extracting raw strings
                 String courseCode = cols.get(1).text(); // "MATH 132 - 002"
                 String type = cols.get(2).text(); // "Midterm"
                 String name = cols.get(3).text(); // "MT1"
@@ -326,7 +281,7 @@ public class SRSScraper {
             return new LocalDateTime[] { start, end };
 
         } catch (Exception e) {
-            System.err.println(">> Could not parse date: '" + rawString + "'");
+            // System.err.println(">> Could not parse date: " + rawString);
             return null;
         }
     }
