@@ -173,7 +173,7 @@ public class SRSScraper {
         // 5. Check Final Success
         if (response.body().contains("STARS::SRS") || response.body().contains("xenon")) {
             System.out.println(">> SMS Verified Successfully! We are in!");
-            
+
             return true;
         } else {
             System.err.println(">> SMS Verification Failed.");
@@ -210,27 +210,59 @@ public class SRSScraper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (!response.body().contains("Exams/Activities")) {
-                System.err.println(">> Failed to reach Exams page.");
+                System.err.println(">> Failed to reach Exams page. Body snippet: "
+                        + response.body().substring(0, Math.min(500, response.body().length())));
                 return examEvents;
             }
 
             Document doc = Jsoup.parse(response.body());
+            System.out.println(">> Exams page parsed. Title: " + doc.title());
 
-            // Iterate through the rows of the exam table
-            for (Element row : doc.select("table.table-striped tbody tr")) {
-                org.jsoup.select.Elements cols = row.select("td");
+            // DEBUG: Print all tables found
+            org.jsoup.select.Elements allTables = doc.select("table");
+            System.out.println(">> Debug: Found " + allTables.size() + " tables.");
+            for (Element t : allTables) {
+                System.out.println("   - Table: Class='" + t.className() + "', ID='" + t.id() + "'");
+            }
 
-                if (cols.size() < 5)
-                    continue; // Skip malformed rows
+            // 1. Get the table directly (we know there is 1 or at least the first one is
+            // likely it)
+            Element table = doc.selectFirst("table");
+            if (table == null) {
+                System.err.println(">> No table found in the HTML!");
+                return examEvents;
+            }
+
+            // DEBUG: Print start of table HTML to see structure
+            String tableHtml = table.html();
+            System.out.println(">> Table HTML snippet: "
+                    + tableHtml.substring(0, Math.min(300, tableHtml.length())).replace("\n", " "));
+
+            // 2. Select ALL rows (skip tbody check to be safe)
+            org.jsoup.select.Elements rows = table.select("tr");
+            System.out.println(">> Found " + rows.size() + " total rows in table.");
+
+            // Iterate through the rows
+            for (Element row : rows) {
+                // Fix: Select both td and th (some tables use th for body cells)
+                org.jsoup.select.Elements cols = row.select("td, th");
+
+                if (cols.size() < 5) {
+                    // It's likely a header row or empty
+                    continue;
+                }
 
                 // 1. Extract Raw Strings
                 String courseCode = cols.get(1).text(); // "MATH 132 - 002"
                 String type = cols.get(2).text(); // "Midterm"
                 String name = cols.get(3).text(); // "MT1"
                 String rawTime = cols.get(4).text(); // "16.10.2025 19:30 - 21:30"
-                String classrooms = cols.get(6).text(); // "B-Z05, B-101..."
 
-                // 2. Parse Dates (Using the helper method below)
+                // Sanitize: text() might contain non-breaking spaces (\u00A0) which break
+                // parsing
+                rawTime = rawTime.replace("\u00A0", " ").trim();
+
+                // 2. Parse Dates
                 LocalDateTime[] times = parseExamTime(rawTime);
                 if (times == null)
                     continue; // Skip if date format is weird
@@ -239,10 +271,7 @@ public class SRSScraper {
                 // e.g., "MATH 132 - Midterm (MT1)"
                 String eventTitle = courseCode.split("-")[0].trim() + " - " + type + " (" + name + ")";
 
-
-                // 5. Create and Add the Object
-                // Assuming your CalendarEvent constructor looks like: (Title, Start, End,
-                // Description)
+                // 4. Create and Add the Object
                 CalendarEvent event = new CalendarEvent(eventTitle, times[0], times[1], Importance.MUST);
 
                 examEvents.add(event);
@@ -297,7 +326,7 @@ public class SRSScraper {
             return new LocalDateTime[] { start, end };
 
         } catch (Exception e) {
-            System.err.println(">> Could not parse date: " + rawString);
+            System.err.println(">> Could not parse date: '" + rawString + "'");
             return null;
         }
     }
