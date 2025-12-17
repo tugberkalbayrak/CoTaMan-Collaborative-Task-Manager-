@@ -8,7 +8,7 @@ public class Group {
     private ObjectId id;
     private String name;
     private String courseCode;
-    private List<ObjectId> memberIds; // Üyelerin ID'leri burada duracak
+    private List<ObjectId> memberIds; 
 
     public Group() {}
 

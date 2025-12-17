@@ -4,14 +4,14 @@ import org.bson.types.ObjectId;
 
 public class Event {
     private ObjectId id;
-    private ObjectId ownerId; // Bu etkinlik kime ait?
+    private ObjectId ownerId; 
     private String title;
     private String location;
-    private Importance importance; // Enum kullanıyoruz
+    private Importance importance; 
     private String startTime;
     private String endTime;
 
-    public Event() {} // MongoDB için zorunlu
+    public Event() {} 
 
     public Event(ObjectId ownerId, String title, String location, Importance importance, String startTime, String endTime) {
         this.ownerId = ownerId;
@@ -22,7 +22,7 @@ public class Event {
         this.endTime = endTime;
     }
 
-    // Getter ve Setter'lar (VS Code'da sağ tık > Source Action > Generate Getters and Setters diyerek hızlıca yapabilirsin)
+    
     public ObjectId getId() { return id; }
     public void setId(ObjectId id) { this.id = id; }
     public ObjectId getOwnerId() { return ownerId; }
@@ -38,7 +38,7 @@ public class Event {
     public String getEndTime() { return endTime; }
     public void setEndTime(String endTime) { this.endTime = endTime; }
 
-    @Override
+    
     public String toString() {
         return title + " (" + importance + ")";
     }

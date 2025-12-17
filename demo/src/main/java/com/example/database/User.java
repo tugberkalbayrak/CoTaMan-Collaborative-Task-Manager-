@@ -7,7 +7,7 @@ public class User {
     private String name;
     private String email;
 
-    public User() {} // Zorunlu boş constructor
+    public User() {} 
 
     public User(String name, String email) {
         this.name = name;
@@ -25,5 +25,4 @@ public class User {
     public String toString() {
         return "User{name='" + name + "', email='" + email + "'}";
     }
-    
 }
