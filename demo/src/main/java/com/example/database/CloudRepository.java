@@ -110,6 +110,24 @@ public class CloudRepository {
         return files;
     }
 
+    // Tek bir tarihi kaydet
+    
+
+    // Toplu kaydetme (Scraper'dan gelen listeyi atmak için)
+    public void saveAllDates(List<DateInfo> dateList) {
+        if (dateList != null && !dateList.isEmpty()) {
+            dateInfoCollection.insertMany(dateList);
+            System.out.println(dateList.size() + " adet tarih veritabanına yüklendi.");
+        }
+    }
+    
+    // Tüm tarihleri getir
+    public List<DateInfo> getAllDates() {
+        List<DateInfo> list = new ArrayList<>();
+        dateInfoCollection.find().into(list);
+        return list;
+    }
+
     // --- New Methods for Scraped Data ---
 
     public void saveCalendarEvent(CalendarEvent event) {

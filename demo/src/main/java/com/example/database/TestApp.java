@@ -2,6 +2,9 @@ package com.example.database;
 
 import java.util.List;
 
+import com.example.Entity.DateInfo;
+import com.example.WebScraping.CalendarScraper;
+
 public class TestApp {
     public static void main(String[] args) {
         System.out.println("--- CoTaMan Tam Sistem Testi ---");
@@ -36,6 +39,10 @@ public class TestApp {
             Visibility.PUBLIC
         );
         repo.saveFileMetadata(notlar);
+
+        CalendarScraper scraper = new CalendarScraper();
+        List<DateInfo> tarihler = scraper.fetchDates();
+        repo.saveAllDates(tarihler);
 
         System.out.println("--- Test Tamamlandı ---");
     }
