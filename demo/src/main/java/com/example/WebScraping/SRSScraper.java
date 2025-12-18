@@ -349,7 +349,11 @@ public class SRSScraper {
                 String eventTitle = courseCode.split("-")[0].trim() + " - " + type + " (" + name + ")";
 
                 // 4. Create and Add the Object
-                CalendarEvent event = new CalendarEvent(eventTitle, times[0], times[1], Importance.MUST);
+                CalendarEvent event = new CalendarEvent();
+                event.setTitle(eventTitle);
+                event.setImportance(Importance.MUST);
+                event.setStartTime(times[0]);
+                event.setEndTime(times[1]);
 
                 examEvents.add(event);
                 // Added Event
