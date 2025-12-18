@@ -3,17 +3,23 @@ package com.example.Entity;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.bson.types.ObjectId;
+
 public class CalendarEvent implements Comparable<CalendarEvent> {
-    private String eventId;
+    private ObjectId eventId;
+    private User owner;
     private String title;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Importance importance;
     private String location;
+    
 
     // Constructor
-    public CalendarEvent(String title, LocalDateTime start, LocalDateTime end, Importance imp) {
+    public CalendarEvent(User owner, String title, String location,LocalDateTime start, LocalDateTime end, Importance imp) {
+        this.owner = owner;
         this.title = title;
+        this.location = location;
         this.startTime = start;
         this.endTime = end;
         this.importance = imp;
@@ -23,13 +29,21 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
     public CalendarEvent() {}
 
 
-    public String getEventId() {
+    public ObjectId getEventId() {
         return eventId;
     }
 
 
-    public void setEventId(String eventId) {
+    public void setEventId(ObjectId eventId) {
         this.eventId = eventId;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
 

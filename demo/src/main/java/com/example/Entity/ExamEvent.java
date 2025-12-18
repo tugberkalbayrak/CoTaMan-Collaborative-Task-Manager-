@@ -8,8 +8,8 @@ public class ExamEvent extends CalendarEvent {
     private List<String> topics;
     private List<String> recommendedMaterialLinks;
 
-    public ExamEvent(String title, LocalDateTime start, Importance imp) { 
-        super(title, start, start.plusHours(2), imp); 
+    public ExamEvent(User owner, String title, String location, LocalDateTime start, Importance imp) { 
+        super(owner, title, location, start, start.plusHours(2), imp); 
         this.topics = new ArrayList<>();
         this.recommendedMaterialLinks = new ArrayList<>();
     }

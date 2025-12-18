@@ -9,16 +9,20 @@ import org.bson.types.ObjectId;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.Entity.AcademicFile;
 import com.example.Entity.CalendarEvent;
 import com.example.Entity.WeeklyLecture;
 import com.example.Entity.DateInfo;
+import com.example.Entity.Group;
+import com.example.Entity.User;
+import com.example.Entity.Visibility;
 
 public class CloudRepository {
 
     private final MongoCollection<User> userCollection;
     private final MongoCollection<Group> groupCollection;
-    private final MongoCollection<Event> eventCollection;
-    private final MongoCollection<ArchiveFile> fileCollection;
+    private final MongoCollection<CalendarEvent> eventCollection;
+    private final MongoCollection<AcademicFile> fileCollection;
 
     // New Collections
     private final MongoCollection<CalendarEvent> calendarEventCollection;
@@ -31,8 +35,8 @@ public class CloudRepository {
 
         this.userCollection = db.getCollection("users", User.class);
         this.groupCollection = db.getCollection("groups", Group.class);
-        this.eventCollection = db.getCollection("events", Event.class);
-        this.fileCollection = db.getCollection("files", ArchiveFile.class);
+        this.eventCollection = db.getCollection("events", CalendarEvent.class);
+        this.fileCollection = db.getCollection("files", AcademicFile.class);
 
         this.calendarEventCollection = db.getCollection("calendar_events", CalendarEvent.class);
         this.weeklyLectureCollection = db.getCollection("weekly_lectures", WeeklyLecture.class);
@@ -44,7 +48,7 @@ public class CloudRepository {
         User existing = getUserByEmail(user.getEmail());
         if (existing == null) {
             userCollection.insertOne(user);
-            System.out.println("Kullanıcı kaydedildi: " + user.getName());
+            System.out.println("Kullanıcı kaydedildi: " + user.getFullName());
         } else {
             System.out.println("HATA: Bu email zaten kayıtlı!");
         }
@@ -58,13 +62,13 @@ public class CloudRepository {
         return userCollection.find(Filters.eq("_id", id)).first();
     }
 
-    public void saveEvent(Event event) {
+    public void saveEvent(CalendarEvent event) {
         eventCollection.insertOne(event);
         System.out.println("Etkinlik eklendi: " + event.getTitle());
     }
 
-    public List<Event> getEventsForUser(ObjectId userId) {
-        List<Event> events = new ArrayList<>();
+    public List<CalendarEvent> getEventsForUser(ObjectId userId) {
+        List<CalendarEvent> events = new ArrayList<>();
 
         eventCollection.find(Filters.eq("ownerId", userId)).into(events);
         return events;
@@ -77,7 +81,7 @@ public class CloudRepository {
 
     public void createGroup(Group group) {
         groupCollection.insertOne(group);
-        System.out.println("Grup oluşturuldu: " + group.getName());
+        System.out.println("Grup oluşturuldu: " + group.getGroupName());
     }
 
     public void addMemberToGroup(ObjectId groupId, ObjectId newMemberId) {
@@ -94,18 +98,18 @@ public class CloudRepository {
         return groups;
     }
 
-    public void saveFileMetadata(ArchiveFile file) {
+    public void saveFileMetadata(AcademicFile file) {
         fileCollection.insertOne(file);
     }
 
-    public List<ArchiveFile> getPublicFiles() {
-        List<ArchiveFile> files = new ArrayList<>();
+    public List<AcademicFile> getPublicFiles() {
+        List<AcademicFile> files = new ArrayList<>();
         fileCollection.find(Filters.eq("visibility", Visibility.PUBLIC)).into(files);
         return files;
     }
 
-    public List<ArchiveFile> getFilesUploadedByUser(ObjectId uploaderId) {
-        List<ArchiveFile> files = new ArrayList<>();
+    public List<AcademicFile> getFilesUploadedByUser(ObjectId uploaderId) {
+        List<AcademicFile> files = new ArrayList<>();
         fileCollection.find(Filters.eq("uploaderId", uploaderId)).into(files);
         return files;
     }

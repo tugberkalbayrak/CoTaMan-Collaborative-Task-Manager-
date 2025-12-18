@@ -1,22 +1,33 @@
 package com.example.Entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.bson.types.ObjectId;
+
 public class Group {
-    private String groupId;
+    private ObjectId groupId;
     private String groupName;
     private String courseCode;
     private List<User> members;
     private List<AcademicFile> groupArchive;
 
+    public Group() {}
+
+    public Group(String name, String courseCode) {
+        this.groupName = name;
+        this.courseCode = courseCode;
+        this.members = new ArrayList<>();
+    }
+
     public void addMember(User newMember) { /* ... */ }
     public List<CalendarEvent> getAggregateSchedule() { /* returns combined schedule of all members */ return null; }
 
-    public String getGroupId() {
+    public ObjectId getGroupId() {
         return groupId;
     }
 
-    public void setGroupId(String groupId) {
+    public void setGroupId(ObjectId groupId) {
         this.groupId = groupId;
     }
 

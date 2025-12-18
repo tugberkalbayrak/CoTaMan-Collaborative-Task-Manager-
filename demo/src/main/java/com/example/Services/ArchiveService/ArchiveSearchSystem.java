@@ -2,7 +2,7 @@ package com.example.Services.ArchiveService;
 
 import com.example.Entity.AcademicFile;
 import com.example.Entity.Group;
-import com.example.database.FileType;
+import com.example.Entity.FileType;
 
 import java.util.ArrayList;
 import java.util.List;

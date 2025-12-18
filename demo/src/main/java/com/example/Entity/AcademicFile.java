@@ -2,8 +2,10 @@ package com.example.Entity;
 
 import java.util.List;
 
+import org.bson.types.ObjectId;
+
 public class AcademicFile {
-    private String fileId;
+    private ObjectId fileId;
     private String fileName;
     private String diskPath;
     private User uploader;
@@ -11,13 +13,23 @@ public class AcademicFile {
     private Visibility visibility;
     private List<String> versionHistoryPaths;
 
+    public AcademicFile() {}
+
+    public AcademicFile(String fileName, String downloadLink, User uploader, FileType type, Visibility visibility) {
+        this.fileName = fileName;
+        this.diskPath = downloadLink;
+        this.uploader = uploader;
+        this.type = type;
+        this.visibility = visibility;
+    }
+
     public void createNewVersion(String newPath, User editor) {}
 
-    public String getFileId() {
+    public ObjectId getFileId() {
         return fileId;
     }
 
-    public void setFileId(String fileId) {
+    public void setFileId(ObjectId fileId) {
         this.fileId = fileId;
     }
 

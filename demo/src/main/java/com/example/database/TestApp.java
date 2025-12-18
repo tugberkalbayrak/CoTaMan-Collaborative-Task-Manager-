@@ -1,8 +1,14 @@
 package com.example.database;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.Entity.AcademicFile;
+import com.example.Entity.CalendarEvent;
 import com.example.Entity.DateInfo;
+import com.example.Entity.FileType;
+import com.example.Entity.Importance;
+import com.example.Entity.User;
 import com.example.WebScraping.CalendarScraper;
 
 public class TestApp {
@@ -11,36 +17,32 @@ public class TestApp {
 
         CloudRepository repo = new CloudRepository();
 
-        
-        User u1 = new User("Zeynep Hoca", "zeynep@bilkent.edu.tr");
+
+        User u1 = new User("224030303" ,"Zeynep Hoca", "zeynep@bilkent.edu.tr");
         repo.saveUser(u1); 
 
        
-        Event ders = new Event(
-            u1.getId(), 
+        CalendarEvent ders = new CalendarEvent(
+            u1, 
             "CS102 Dersi", 
             "B-Z01", 
-            Importance.MUST, 
-            "2025-10-10 08:30", 
-            "2025-10-10 10:20"
+             
+            LocalDateTime.now(), 
+            LocalDateTime.now().plusHours(2),Importance.OPTIONAL
         );
         repo.saveEvent(ders);
 
         
-        List<Event> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
+        List<CalendarEvent> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
         System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
 
        
-        ArchiveFile notlar = new ArchiveFile(
-            "Hafta_1_Notlari.pdf", 
-            "C:/Belgelerim/Notlar.pdf", 
-            u1.getId(), 
-            FileType.LECTURE_NOTES, 
-            Visibility.PUBLIC
-        );
+        AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1, FileType.LECTURE_NOTE, null);
+        
         repo.saveFileMetadata(notlar);
 
         CalendarScraper scraper = new CalendarScraper();
+
         List<DateInfo> tarihler = scraper.fetchDates();
         repo.saveAllDates(tarihler);
 

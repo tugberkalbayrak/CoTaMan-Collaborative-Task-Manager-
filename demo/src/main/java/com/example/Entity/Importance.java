@@ -7,10 +7,5 @@ public enum Importance {
     public int getWeight() { return weight; }
 }
 
-enum Visibility {
-    PRIVATE, GROUP, PUBLIC
-}
 
-public enum FileType {
-    SYLLABUS, LECTURE_NOTE, PAST_EXAM
-}
+

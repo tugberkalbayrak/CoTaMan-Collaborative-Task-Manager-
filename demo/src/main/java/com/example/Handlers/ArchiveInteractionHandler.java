@@ -2,11 +2,12 @@ package com.example.Handlers;
 
 import com.example.Entity.AcademicFile;
 import com.example.Entity.Group;
+import com.example.Entity.User;
 import com.example.Services.ArchiveService.ArchiveSearchSystem;
 import com.example.database.CloudRepository;
-import com.example.database.FileType;
-import com.example.database.Visibility;
-import com.example.database.ArchiveFile; // Explicitly using DB Entity
+import com.example.Entity.FileType;
+import com.example.Entity.Visibility;
+import com.example.Entity.AcademicFile; // Explicitly using DB Entity
 import org.bson.types.ObjectId;
 
 import java.io.File;
@@ -24,7 +25,7 @@ public class ArchiveInteractionHandler {
         this.searchSystem = new ArchiveSearchSystem(); // Assuming this service exists or logic is integrated
     }
 
-    public void onFileDrop(File rawFile, String fileName, String courseCode, String visibilityStr, ObjectId uploaderId) {
+    public void onFileDrop(File rawFile, String fileName, String courseCode, String visibilityStr, User uploader) {
         if (rawFile != null && rawFile.exists()) {
             
             // Map Visibility String from UI to Enum
@@ -38,11 +39,11 @@ public class ArchiveInteractionHandler {
             }
 
             // Create Database Entity
-            ArchiveFile newFile = new ArchiveFile(
+            AcademicFile newFile = new AcademicFile(
                 fileName,
                 rawFile.getAbsolutePath(), // Storing path as download link
-                uploaderId,
-                FileType.OTHER, // Defaulting to OTHER, ideally logic detects extension
+                uploader,
+                FileType.LECTURE_NOTE, // Defaulting to OTHER, ideally logic detects extension
                 vis
             );
 
