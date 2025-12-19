@@ -1,6 +1,9 @@
 package com.example.database;
 
 import com.example.Entity.Visibility;
+
+import java.io.File;
+import java.awt.Desktop;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,11 +45,38 @@ public class TestApp {
         
         repo.saveFileMetadata(notlar);
 
+        AcademicFile yeniNot = new AcademicFile();
+        yeniNot.setFileName("yeni not");
+        yeniNot.setDiskPath("C:\\Users\\lekol\\Downloads\\İstanbul şehri (2).pdf");
+        yeniNot.setUploader(u1);
+        repo.saveFileMetadata(yeniNot);
+
         CalendarScraper scraper = new CalendarScraper();
 
-        List<DateInfo> tarihler = scraper.fetchDates();
-        repo.saveAllDates(tarihler);
+        //List<DateInfo> tarihler = scraper.fetchDates();
+        //repo.saveAllDates(tarihler);
 
         System.out.println("--- Test Tamamlandı ---");
+
+        AcademicFile secilenDosya = repo.getFileByName(yeniNot.getFileName());
+        String dosyaYolu = secilenDosya.getDiskPath();
+        File dosya = new File(dosyaYolu);
+        
+        if (dosya.exists()) {
+        try {
+            // İşletim sisteminin varsayılan uygulamasıyla açar (PDF ise PDF okuyucu, Resim ise Fotoğraflar vb.)
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(dosya); 
+                System.out.println("Dosya açılıyor: " + dosya.getName());
+            } else {
+                System.out.println("Bu sistemde dosya açma işlemi desteklenmiyor.");
+            }
+        } catch (Exception e) {
+            System.out.println("Dosya açılırken hata oluştu: " + e.getMessage());
+            e.printStackTrace();
+        }
+    } else {
+        System.out.println("HATA: Dosya diskte bulunamadı! Yol: " + dosyaYolu);
+    }   
     }
 }

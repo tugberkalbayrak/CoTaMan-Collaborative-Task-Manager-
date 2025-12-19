@@ -7,6 +7,7 @@ module com.example {
     requires transitive org.mongodb.bson;
     requires transitive org.mongodb.driver.core;
     requires org.slf4j;
+     requires java.desktop;
 
     opens com.example to javafx.fxml;
 

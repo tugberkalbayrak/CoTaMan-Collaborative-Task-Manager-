@@ -114,6 +114,14 @@ public class CloudRepository {
         return files;
     }
 
+    public AcademicFile getFileById(ObjectId fileId) {
+        return fileCollection.find(Filters.eq("_id", fileId)).first();
+    }
+
+    public AcademicFile getFileByName(String fileName) {
+        return fileCollection.find(Filters.eq("fileName", fileName)).first();
+    }
+
     // Tek bir tarihi kaydet
     
 
