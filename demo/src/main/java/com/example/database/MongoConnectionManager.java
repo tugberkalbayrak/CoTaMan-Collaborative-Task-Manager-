@@ -7,6 +7,7 @@ import java.io.InputStream;
 
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.codecs.jsr310.Jsr310CodecProvider; 
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -27,8 +28,14 @@ public class MongoConnectionManager {
             String connectionString = "mongodb+srv://admin:sifre123@cotaman.2gv2vue.mongodb.net/?appName=Cotaman";
             String dbName = "Cotaman";
 
+             // 1. PojoProvider (Normal sınıfların için)
+            PojoCodecProvider pojoProvider = PojoCodecProvider.builder().automatic(true).build();
+        
+            // 2. Jsr310Provider (LocalDateTime, LocalDate gibi tarih sınıfları için)
+            Jsr310CodecProvider timeProvider = new Jsr310CodecProvider();
             
-            CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+            CodecRegistry pojoCodecRegistry = fromProviders(timeProvider, pojoProvider);
+
             CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
 
             MongoClientSettings settings = MongoClientSettings.builder()

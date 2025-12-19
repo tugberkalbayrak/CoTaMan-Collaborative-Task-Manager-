@@ -1,5 +1,6 @@
 package com.example.database;
 
+import com.example.Entity.Visibility;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,9 +27,9 @@ public class TestApp {
             u1, 
             "CS102 Dersi", 
             "B-Z01", 
-             
             LocalDateTime.now(), 
-            LocalDateTime.now().plusHours(2),Importance.OPTIONAL
+            LocalDateTime.now().plusHours(1),
+            Importance.OPTIONAL
         );
         repo.saveEvent(ders);
 
@@ -37,7 +38,7 @@ public class TestApp {
         System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
 
        
-        AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1, FileType.LECTURE_NOTE, null);
+        AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1, FileType.LECTURE_NOTE, Visibility.PUBLIC);
         
         repo.saveFileMetadata(notlar);
 

@@ -3,6 +3,7 @@ package com.example.Entity;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 public class CalendarEvent implements Comparable<CalendarEvent> {
@@ -15,6 +16,8 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
     private String location;
     
 
+
+    public CalendarEvent() {}
     // Constructor
     public CalendarEvent(User owner, String title, String location,LocalDateTime start, LocalDateTime end, Importance imp) {
         this.owner = owner;
@@ -25,8 +28,8 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
         this.importance = imp;
     }
 
-    //Also default constructor.
-    public CalendarEvent() {}
+  
+   
 
 
     public ObjectId getEventId() {
@@ -109,6 +112,7 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
         return this.startTime.compareTo(other.startTime);
     }
 
+    @BsonIgnore
     public Duration getDuration() {
         if (startTime != null && endTime != null) {
             return Duration.between(startTime, endTime);
