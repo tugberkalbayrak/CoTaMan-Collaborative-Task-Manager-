@@ -15,11 +15,17 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import com.example.ui.components.*;
+import com.example.Manager.SessionManager; // Backend Bağlantısı
+import com.example.Entity.AcademicFile; // Veri Modeli
+import java.util.List;
 
 public class ArchiveView extends StackPane {
 
     private NavBar navBar;
     private StackPane overlayContainer;
+
+    // Listeyi sınıf seviyesine çıkardık ki her yerden erişip yenileyebilelim
+    private VBox fileListVBox;
 
     public ArchiveView() {
         BorderPane mainLayout = new BorderPane();
@@ -32,6 +38,7 @@ public class ArchiveView extends StackPane {
 
         mainLayout.setCenter(createContentArea());
 
+        // Overlay (Pop-up perdesi)
         overlayContainer = new StackPane();
         overlayContainer.setVisible(false);
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4);");
@@ -54,18 +61,19 @@ public class ArchiveView extends StackPane {
         VBox box = new VBox(15);
         box.setPadding(new Insets(20));
 
+        // --- ÜST BAR ---
         HBox topBar = new HBox(15);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-        Button searchTriggerBtn = createIconButton("M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z");
+        Button searchTriggerBtn = createIconButton(
+                "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z");
         searchTriggerBtn.setOnAction(e -> showSearchPanel());
 
         Button filterIconBtn = createIconButton("M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z");
 
-
         Label searchFolderBtn = new Label("Search This Folder 🔍");
         searchFolderBtn.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand;");
-        
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -74,17 +82,17 @@ public class ArchiveView extends StackPane {
 
         topBar.getChildren().addAll(searchTriggerBtn, filterIconBtn, spacer, searchFolderBtn, uploadBtn);
 
-        Label pathLabel = new Label("Public Archive > CS > CS102 > Syllabus");
+        // --- BREADCRUMB ---
+        Label pathLabel = new Label("Public Archive > All Files");
         pathLabel.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-style: italic;");
 
-        VBox fileList = new VBox(10);
-        fileList.getChildren().add(new FileItem("CS102_Syllabus_2025.pdf", "12 Oct 2025", "Uğur Güdükbay"));
-        fileList.getChildren().add(new FileItem("Midterm_Review_Notes.docx", "15 Nov 2025", "Tuğberk Albayrak"));
-        fileList.getChildren().add(new FileItem("Lab04_Solutions.zip", "20 Nov 2025", "Abdullah Özen"));
-        fileList.getChildren().add(new FileItem("Lecture_Slides_Week7.pptx", "22 Nov 2025", "Sinan Çavdar"));
-        fileList.getChildren().add(new FileItem("Final_Exam_2024.pdf", "05 Jan 2025", "Anonim"));
+        // --- DOSYA LİSTESİ ---
+        fileListVBox = new VBox(10); // VBox'ı başlattık
 
-        ScrollPane scroll = new ScrollPane(fileList);
+        // Sayfa açılır açılmaz veritabanından verileri çek
+        refreshFileList();
+
+        ScrollPane scroll = new ScrollPane(fileListVBox);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
@@ -92,36 +100,54 @@ public class ArchiveView extends StackPane {
         return box;
     }
 
-    private void showSearchPanel() {
-        SearchFilterPopup popup = new SearchFilterPopup();
-        
-        popup.setOnSave(() -> {
-            overlayContainer.setVisible(false);
-            overlayContainer.getChildren().clear();
-        });
-        
-        popup.setOnClear(() -> {
-            System.out.println("Filtreler temizlendi");
-        });
+    // --- VERİTABANINDAN LİSTEYİ YENİLEME METODU ---
+    private void refreshFileList() {
+        // 1. Mevcut listeyi temizle
+        fileListVBox.getChildren().clear();
 
-        StackPane.setAlignment(popup, Pos.TOP_RIGHT);
-        StackPane.setMargin(popup, new Insets(60, 100, 0, 0));
+        // 2. SessionManager üzerinden veritabanındaki dosyaları çek
+        List<AcademicFile> dbFiles = SessionManager.getInstance().getPublicFiles();
 
-        overlayContainer.getChildren().clear();
-        overlayContainer.getChildren().add(popup);
-        overlayContainer.setVisible(true);
+        if (dbFiles.isEmpty()) {
+            Label emptyLbl = new Label("No files found. Be the first to upload!");
+            emptyLbl.setStyle("-fx-text-fill: gray; -fx-font-size: 14px;");
+            fileListVBox.getChildren().add(emptyLbl);
+        } else {
+            // 3. Her dosya için bir FileItem oluştur
+            for (AcademicFile file : dbFiles) {
+                String uploaderName = (file.getUploader() != null) ? file.getUploader().getFullName() : "Unknown";
+
+                // FileItem(FileName, Date, Uploader)
+                FileItem item = new FileItem(file.getFileName(), "Recently", uploaderName);
+                fileListVBox.getChildren().add(item);
+            }
+        }
+        System.out.println("Arşiv yenilendi. Dosya sayısı: " + dbFiles.size());
     }
 
+    // --- UPLOAD POPUP VE KAYIT ---
     private void showUploadPopup() {
         UploadFilePopup popup = new UploadFilePopup();
-        
+
         popup.setOnCancel(() -> {
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
         });
 
         popup.setOnSave(() -> {
-            System.out.println("Dosya Yükleniyor: " + popup.getFileName());
+            // Verileri Formdan Al
+            String name = popup.getFileName();
+            String course = popup.getCourse();
+            String type = popup.getFileType();
+            String visibility = popup.getVisibility();
+
+            if (name != null && !name.isEmpty()) {
+                // 1. Veritabanına Kaydet (SessionManager Aracılığıyla)
+                SessionManager.getInstance().uploadFile(name, course, type, visibility);
+
+                // 2. Listeyi Yenile (Anında görünsün)
+                refreshFileList();
+            }
 
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
@@ -135,6 +161,29 @@ public class ArchiveView extends StackPane {
         overlayContainer.setVisible(true);
     }
 
+    // --- SEARCH PANEL (Görsel Kalıyor) ---
+    private void showSearchPanel() {
+        SearchFilterPopup popup = new SearchFilterPopup();
+
+        popup.setOnSave(() -> {
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
+
+        popup.setOnClear(() -> {
+            System.out.println("Filtreler temizlendi");
+            refreshFileList(); // Temizleyince tüm listeyi geri getir
+        });
+
+        StackPane.setAlignment(popup, Pos.TOP_RIGHT);
+        StackPane.setMargin(popup, new Insets(60, 100, 0, 0));
+
+        overlayContainer.getChildren().clear();
+        overlayContainer.getChildren().add(popup);
+        overlayContainer.setVisible(true);
+    }
+
+    // --- SIDEBAR (Aynı kalıyor) ---
     private VBox createSidebar() {
         VBox box = new VBox(10);
         box.setPadding(new Insets(20));
@@ -151,27 +200,22 @@ public class ArchiveView extends StackPane {
         TreeItem<String> csFolder = new TreeItem<>("CS");
         TreeItem<String> cs102 = new TreeItem<>("CS102");
         cs102.getChildren().addAll(
-            new TreeItem<>("Syllabus"),
-            new TreeItem<>("Old Exams"),
-            new TreeItem<>("Lecture Notes")
-        );
+                new TreeItem<>("Syllabus"),
+                new TreeItem<>("Old Exams"),
+                new TreeItem<>("Lecture Notes"));
         csFolder.getChildren().add(cs102);
 
         TreeItem<String> mathFolder = new TreeItem<>("MATH");
         mathFolder.getChildren().add(new TreeItem<>("MATH102"));
-        
-        TreeItem<String> physFolder = new TreeItem<>("PHYS");
-        physFolder.getChildren().addAll(new TreeItem<>("PHYS101"), new TreeItem<>("PHYS102"));
 
-        rootItem.getChildren().addAll(csFolder, mathFolder, physFolder);
+        rootItem.getChildren().addAll(csFolder, mathFolder);
 
         TreeView<String> treeView = new TreeView<>(rootItem);
         treeView.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-control-inner-background: " + Theme.PANEL_COLOR1 + ";" +
-            "-fx-text-fill: white;"
-        );
-        
+                "-fx-background-color: transparent;" +
+                        "-fx-control-inner-background: " + Theme.PANEL_COLOR1 + ";" +
+                        "-fx-text-fill: white;");
+
         box.getChildren().addAll(title, treeView);
         return box;
     }

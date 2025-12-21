@@ -4,10 +4,9 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import java.io.InputStream;
 
-
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.bson.codecs.jsr310.Jsr310CodecProvider; 
+import org.bson.codecs.jsr310.Jsr310CodecProvider;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -21,22 +20,22 @@ public class MongoConnectionManager {
     private MongoDatabase database;
 
     private MongoConnectionManager() {
-        
-        
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            
+
+            // LÜTFEN KENDİ BAĞLANTI LİNKİNİ BURAYA KOY
             String connectionString = "mongodb+srv://admin:sifre123@cotaman.2gv2vue.mongodb.net/?appName=Cotaman";
             String dbName = "Cotaman";
 
-             // 1. PojoProvider (Normal sınıfların için)
-            PojoCodecProvider pojoProvider = PojoCodecProvider.builder().automatic(true).build();
-        
-            // 2. Jsr310Provider (LocalDateTime, LocalDate gibi tarih sınıfları için)
-            Jsr310CodecProvider timeProvider = new Jsr310CodecProvider();
-            
-            CodecRegistry pojoCodecRegistry = fromProviders(timeProvider, pojoProvider);
+            // --- POJO AYARI: Otomatik tanıma açık ---
+            PojoCodecProvider pojoProvider = PojoCodecProvider.builder()
+                    .automatic(true)
+                    .build();
 
-            CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+            Jsr310CodecProvider timeProvider = new Jsr310CodecProvider();
+
+            CodecRegistry pojoCodecRegistry = fromProviders(timeProvider, pojoProvider);
+            CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+                    pojoCodecRegistry);
 
             MongoClientSettings settings = MongoClientSettings.builder()
                     .applyConnectionString(new ConnectionString(connectionString))
@@ -46,7 +45,7 @@ public class MongoConnectionManager {
             mongoClient = MongoClients.create(settings);
             database = mongoClient.getDatabase(dbName);
             System.out.println(">> MongoDB Bağlantısı Başarılı!");
-            
+
         } catch (Exception ex) {
             System.out.println("HATA: Bağlantı kurulamadı!");
             ex.printStackTrace();
@@ -63,5 +62,4 @@ public class MongoConnectionManager {
     public MongoDatabase getDatabase() {
         return database;
     }
-    
 }

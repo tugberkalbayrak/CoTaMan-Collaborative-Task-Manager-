@@ -2,33 +2,42 @@ package com.example.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bson.types.ObjectId;
+import com.example.ui.components.Task; // Task sınıfını tanıtalım
 
 public class Group {
-    private ObjectId groupId;
+    private ObjectId id;
     private String groupName;
     private String courseCode;
     private List<User> members;
+    private List<ObjectId> memberIds;
     private List<AcademicFile> groupArchive;
 
-    public Group() {}
+    // --- YENİ EKLENECEK KISIM ---
+    private List<Task> tasks;
+
+    public Group() {
+        this.memberIds = new ArrayList<>();
+        this.groupArchive = new ArrayList<>();
+        this.tasks = new ArrayList<>(); // Listeyi başlat
+    }
 
     public Group(String name, String courseCode) {
         this.groupName = name;
         this.courseCode = courseCode;
-        this.members = new ArrayList<>();
+        this.memberIds = new ArrayList<>();
+        this.groupArchive = new ArrayList<>();
+        this.tasks = new ArrayList<>(); // Listeyi başlat
     }
 
-    public void addMember(User newMember) { /* ... */ }
-    public List<CalendarEvent> getAggregateSchedule() { /* returns combined schedule of all members */ return null; }
+    // ... Diğer Getter/Setter'lar aynı kalsın ...
 
-    public ObjectId getGroupId() {
-        return groupId;
+    public ObjectId getId() {
+        return id;
     }
 
-    public void setGroupId(ObjectId groupId) {
-        this.groupId = groupId;
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getGroupName() {
@@ -47,12 +56,12 @@ public class Group {
         this.courseCode = courseCode;
     }
 
-    public List<User> getMembers() {
-        return members;
+    public List<ObjectId> getMemberIds() {
+        return memberIds;
     }
 
-    public void setMembers(List<User> members) {
-        this.members = members;
+    public void setMemberIds(List<ObjectId> memberIds) {
+        this.memberIds = memberIds;
     }
 
     public List<AcademicFile> getGroupArchive() {
@@ -61,5 +70,22 @@ public class Group {
 
     public void setGroupArchive(List<AcademicFile> groupArchive) {
         this.groupArchive = groupArchive;
+    }
+
+    public List<User> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<User> members) {
+        this.members = members;
+    }
+
+    // --- YENİ GETTER & SETTER ---
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
     }
 }
