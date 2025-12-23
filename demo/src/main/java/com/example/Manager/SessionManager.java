@@ -11,6 +11,7 @@ import com.example.Entity.Visibility;
 import com.example.Entity.WeeklyLecture;
 import com.example.WebScraping.SRSScraper;
 import com.example.Handlers.AuthenticationHandler;
+import com.example.WebScraping.MoodleScraper;
 import com.example.ui.components.Task; // Task import
 import com.example.Services.ArchiveService.CalendarService.IntelligentMeetingSchedular;
 import com.example.Entity.TimeSlot;
@@ -43,6 +44,19 @@ public class SessionManager {
         if (instance == null)
             instance = new SessionManager();
         return instance;
+    }
+
+    // --- UI LISTENER ---
+    private Runnable onEventsUpdated;
+
+    public void setOnEventsUpdated(Runnable action) {
+        this.onEventsUpdated = action;
+    }
+
+    private void notifyUI() {
+        if (onEventsUpdated != null) {
+            javafx.application.Platform.runLater(onEventsUpdated);
+        }
     }
 
     // --- YENİ: GÖREV EKLEME ---
@@ -112,7 +126,14 @@ public class SessionManager {
 
         if (user.getPassword() != null && user.getPassword().equals(password)) {
             this.currentUser = user;
+            this.currentUser = user;
             System.out.println("Giriş Başarılı: " + user.getFullName());
+
+            // --- MOODLE AUTO-FETCH ---
+            if (user.getMoodleUsername() != null && !user.getMoodleUsername().isEmpty()) {
+                fetchMoodleEventsAsync();
+            }
+
             return true;
         } else {
             System.out.println("HATA: Şifre yanlış.");
@@ -120,7 +141,7 @@ public class SessionManager {
         }
     }
 
-    public boolean register(String name, String email, String password) {
+    public boolean register(String name, String email, String password, String moodleId, String moodlePass) {
         if (repository.getUserByEmail(email) != null)
             return false;
 
@@ -129,7 +150,15 @@ public class SessionManager {
         newUser.setEmail(email);
         newUser.setPassword(password);
 
+        // Moodle credentials (optional)
+        newUser.setMoodleUsername(moodleId);
+        newUser.setMoodlePassword(moodlePass);
+
         repository.saveUser(newUser);
+
+        // Auto-fetch if registered with credentials?
+        // Usually we want them to login first, so we might not fetch here immediately.
+
         return true;
     }
 
@@ -182,6 +211,30 @@ public class SessionManager {
             }
         }
         return events;
+    }
+
+    // --- MOODLE FETCH ---
+    public void fetchMoodleEventsAsync() {
+        if (currentUser == null || currentUser.getMoodleUsername() == null)
+            return;
+
+        new Thread(() -> {
+            System.out.println("Starting Moodle Auto-Fetch for: " + currentUser.getMoodleUsername());
+            MoodleScraper scraper = new MoodleScraper();
+            if (scraper.connect(currentUser.getMoodleUsername(), currentUser.getMoodlePassword())) {
+                List<CalendarEvent> events = scraper.fetchEvents();
+                System.out.println("Fetched " + events.size() + " Moodle events.");
+
+                for (CalendarEvent event : events) {
+                    event.setOwner(currentUser);
+                    repository.saveEvent(event);
+                }
+
+                notifyUI(); // Refresh UI
+            } else {
+                System.err.println("Moodle Auto-Fetch Failed: Login error.");
+            }
+        }).start();
     }
 
     public List<CalendarEvent> getUserEvents() {

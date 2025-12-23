@@ -7,7 +7,7 @@ import com.example.Services.ArchiveService.ArchiveSearchSystem;
 import com.example.database.CloudRepository;
 import com.example.Entity.FileType;
 import com.example.Entity.Visibility;
-import com.example.Entity.AcademicFile; // Explicitly using DB Entity
+import com.example.Entity.AcademicFile;
 import org.bson.types.ObjectId;
 
 import java.io.File;
@@ -22,13 +22,12 @@ public class ArchiveInteractionHandler {
 
     public ArchiveInteractionHandler() {
         this.repository = new CloudRepository();
-        this.searchSystem = new ArchiveSearchSystem(); // Assuming this service exists or logic is integrated
+        this.searchSystem = new ArchiveSearchSystem();
     }
 
     public void onFileDrop(File rawFile, String fileName, String courseCode, String visibilityStr, User uploader) {
         if (rawFile != null && rawFile.exists()) {
 
-            // Map Visibility String from UI to Enum
             Visibility vis = Visibility.PUBLIC;
             if (visibilityStr != null) {
                 if (visibilityStr.equalsIgnoreCase("Group Only")) {
@@ -53,19 +52,10 @@ public class ArchiveInteractionHandler {
         }
     }
 
-    /**
-     * Internal logic to filter files based on query and type.
-     * Operates on the Group's cached list of Core AcademicFile entities.
-     */
     public List<AcademicFile> searchFiles(Group group, String query, FileType typeFilter) {
-        // Delegate to the ArchiveSearchSystem service
         return searchSystem.searchFiles(group, query, typeFilter);
     }
 
-    /**
-     * Handler called by the UI search bar input listener.
-     * Delegates to the searchFiles method.
-     */
     public List<AcademicFile> onSearchInput(Group group, String query, FileType type) {
         return searchFiles(group, query, type);
     }

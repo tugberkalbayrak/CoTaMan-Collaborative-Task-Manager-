@@ -83,6 +83,10 @@ public class CloudRepository {
             doc.append("email", user.getEmail());
             doc.append("password", user.getPassword());
             doc.append("bilkentId", user.getBilkentId());
+            // --- MOODLE CREDENTIALS ---
+            doc.append("moodleUsername", user.getMoodleUsername());
+            doc.append("moodlePassword", user.getMoodlePassword());
+            // --------------------------
             doc.append("schedule", new ArrayList<>());
             doc.append("enrolledGroups", new ArrayList<>());
             doc.append("friends", new ArrayList<>());
@@ -100,6 +104,23 @@ public class CloudRepository {
 
     public User getUserById(ObjectId id) {
         return userCollection.find(Filters.eq("_id", id)).first();
+    }
+
+    public void updateUser(User user) {
+        try {
+            Document updateDoc = new Document();
+            updateDoc.append("fullName", user.getFullName());
+            updateDoc.append("email", user.getEmail());
+            updateDoc.append("bilkentId", user.getBilkentId());
+            updateDoc.append("profilePhotoPath", user.getProfilePhotoPath());
+            // Password and other fields if needed
+
+            rawUserCollection.updateOne(Filters.eq("_id", user.getId()), new Document("$set", updateDoc));
+            System.out.println("✅ Kullanıcı güncellendi: " + user.getFullName());
+        } catch (Exception e) {
+            System.out.println("❌ Kullanıcı güncelleme hatası: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public User getUserByBilkentId(String bilkentId) {

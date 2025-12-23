@@ -13,7 +13,9 @@ public class RecommendationSystem {
 
         if (groupFiles != null && topics != null) {
             for (AcademicFile file : groupFiles) {
+
                 for (String topic : topics) {
+
                     if (file.getFileName().toLowerCase().contains(topic.toLowerCase())) {
                         suggestions.add(file);
                         break;

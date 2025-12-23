@@ -23,6 +23,12 @@ public class User {
     @BsonProperty("bilkentId")
     private String bilkentId;
 
+    @BsonProperty("moodleUsername")
+    private String moodleUsername;
+
+    @BsonProperty("moodlePassword")
+    private String moodlePassword;
+
     @BsonProperty("schedule")
     private List<CalendarEvent> schedule = new ArrayList<>();
 
@@ -31,6 +37,9 @@ public class User {
 
     @BsonProperty("friends")
     private List<ObjectId> friends;
+
+    @BsonProperty("profilePhotoPath")
+    private String profilePhotoPath;
 
     public User() {
     }
@@ -83,6 +92,22 @@ public class User {
         this.bilkentId = bilkentId;
     }
 
+    public String getMoodleUsername() {
+        return moodleUsername;
+    }
+
+    public void setMoodleUsername(String moodleUsername) {
+        this.moodleUsername = moodleUsername;
+    }
+
+    public String getMoodlePassword() {
+        return moodlePassword;
+    }
+
+    public void setMoodlePassword(String moodlePassword) {
+        this.moodlePassword = moodlePassword;
+    }
+
     public List<CalendarEvent> getSchedule() {
         return schedule;
     }
@@ -111,5 +136,13 @@ public class User {
 
     public void setFriends(List<ObjectId> friends) {
         this.friends = friends;
+    }
+
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
 }

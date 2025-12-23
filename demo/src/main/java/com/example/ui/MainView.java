@@ -49,6 +49,10 @@ public class MainView extends StackPane {
         // DEĞİŞİKLİK 2: Home butonuna basınca Takvime dön
         navBar.setOnHomeClick(() -> mainLayout.setCenter(createCenterArea()));
 
+        // Wire up new features
+        navBar.setOnSettingsClick(this::showSettings);
+        navBar.setOnNotificationsClick(this::showNotifications);
+
         VBox groupsPanel = createGroupsPanel();
         mainLayout.setRight(groupsPanel);
 
@@ -69,6 +73,14 @@ public class MainView extends StackPane {
         overlayContainer.setVisible(false);
 
         this.getChildren().addAll(mainLayout, addEventFab, overlayContainer);
+
+        // Listen for background updates (e.g. Moodle Auto-Fetch)
+        SessionManager.getInstance().setOnEventsUpdated(() -> {
+            if (calendarGrid != null) {
+                System.out.println("🔄 UI Refresh Triggered (New Events Found)");
+                calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
+            }
+        });
     }
 
     // DEĞİŞİKLİK 3: Orta alanı (Takvimi) oluşturan metot eklendi
@@ -292,5 +304,13 @@ public class MainView extends StackPane {
         overlayContainer.getChildren().clear();
         overlayContainer.getChildren().add(popup);
         overlayContainer.setVisible(true);
+    }
+
+    private void showSettings() {
+        mainLayout.setCenter(new SettingsView());
+    }
+
+    private void showNotifications() {
+        mainLayout.setCenter(new NotificationsView());
     }
 }

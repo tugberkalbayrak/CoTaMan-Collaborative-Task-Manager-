@@ -1,7 +1,7 @@
 package com.example.Handlers;
 
 import com.example.database.CloudRepository;
-import com.example.Entity.User; // DB User entity
+import com.example.Entity.User;
 
 public class AuthenticationHandler {
 
@@ -12,10 +12,11 @@ public class AuthenticationHandler {
     }
 
     public boolean onLoginClick(String email, String password) {
-        if (email == null || password == null) return false;
+        if (email == null || password == null)
+            return false;
 
         User user = repository.getUserByEmail(email);
-        
+
         if (user != null) {
             System.out.println("Login Success: " + user.getFullName());
             return true;
@@ -24,8 +25,8 @@ public class AuthenticationHandler {
     }
 
     public void onRegisterClick(String name, String surname, String id, String email, String password) {
-        User newUser = new User( name + " " + surname, email,password, id);
-        // Note: Add logic to save ID/Password if User entity supports it
+        User newUser = new User(name + " " + surname, email, password, id);
+
         repository.saveUser(newUser);
         System.out.println("User Registered: " + email);
     }
