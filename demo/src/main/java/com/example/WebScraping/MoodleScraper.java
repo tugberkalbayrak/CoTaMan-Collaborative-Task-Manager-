@@ -147,16 +147,6 @@ public class MoodleScraper {
             for (Element card : eventCards) {
                 String title = card.select("h3.name").text(); // Title usually in h3
                 String dateText = card.select(".date").text(); // Date usually in a class .date
-
-                // --- DEBUG: If date is empty, try harder or log it ---
-                if (dateText.isEmpty()) {
-                    // Try alternative selectors common in Bilkent Moodle
-                    dateText = card.select(".col-xs-11").text(); // Sometimes date is here text
-                    if (dateText.isEmpty()) {
-                        System.out.println("Wait! Date is empty. Card HTML: " + card.html());
-                    }
-                }
-
                 String courseName = card.select(".course").text(); // Course name if available
 
                 // If title is empty, skip (it might be a layout div)
@@ -169,11 +159,14 @@ public class MoodleScraper {
                 event.setImportance(Importance.MUST); // Assignments are critical!
 
                 System.out.println("   (Debug) Raw Moodle Date: " + dateText); // Let's see what we got
-                event.setEndTime(parseMoodleDate(dateText));
-                event.setStartTime(event.getEndTime().minusHours(1)); // Default 1 hour duration ending at deadline
+                event.setStartTime(parseMoodleDate(dateText));
+                event.setEndTime(event.getStartTime().plusHours(1)); // Default 1 hour duration
 
                 moodleEvents.add(event);
                 System.out.println("Scraped Assignment: " + event.getTitle() + " Due: " + event.getStartTime());
+
+                moodleEvents.add(event);
+                System.out.println("Scraped Assignment: " + title);
             }
 
         } catch (Exception e) {
@@ -202,53 +195,30 @@ public class MoodleScraper {
      * or "Yesterday, 14:00"
      */
     private LocalDateTime parseMoodleDate(String rawDate) {
-        System.out.println("DEBUG: Parsing Moodle Date from string: '" + rawDate + "'");
         try {
-            String lower = rawDate.toLowerCase();
+            // 1. Clean the string
+            // Input: "Friday, 12 December, 17:00"
+            // Remove the day name if present (anything before the first comma)
+            String cleanDate = rawDate;
+            if (rawDate.contains(",")) {
+                // If it splits into 3 parts (Day, Date, Time), take the last two
+                // Example: "Friday, 12 December, 17:00" -> " 12 December, 17:00"
+                int firstComma = rawDate.indexOf(",");
+                cleanDate = rawDate.substring(firstComma + 1).trim();
+            }
 
-            // 1. Handle "Tomorrow" / "Yesterday" special cases FIRST
-            if (lower.contains("tomorrow")) {
-                // Format: "Tomorrow, 17:30"
-                // Split by comma or space to find time
-                String[] parts = rawDate.split(",");
-                String timePart = parts[parts.length - 1].trim(); // Take the last part "17:30"
+            // 2. Handle "Tomorrow" / "Yesterday" special cases
+            if (cleanDate.toLowerCase().startsWith("tomorrow")) {
+                String timePart = cleanDate.split(",")[1].trim(); // "17:00"
                 java.time.LocalTime time = java.time.LocalTime.parse(timePart,
                         java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
                 return LocalDateTime.now().plusDays(1).with(time);
             }
 
-            if (lower.contains("yesterday")) {
-                String[] parts = rawDate.split(",");
-                String timePart = parts[parts.length - 1].trim();
-                java.time.LocalTime time = java.time.LocalTime.parse(timePart,
-                        java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-                return LocalDateTime.now().minusDays(1).with(time);
-            }
-
-            // 2. Standard Parse: "Friday, 12 December, 17:00" -> Clean day name
-            String cleanDate = rawDate;
-            if (rawDate.contains(",")) {
-                // If it splits into 3 parts (Day, Date, Time), take the last two
-                // Example: "Friday, 12 December, 17:00" -> " 12 December, 17:00"
-                // But avoid cleaning if it looks like "12 December, 17:00" already
-                // Count commas? Bilkent Moodle usually: "DayName, Day Month, Time" (2 commas)
-                // Or "Day Month, Time" (1 comma) - Wait, "Sunday, 28 December, 23:59" has 2
-                // commas.
-                // "Tomorrow, 17:30" has 1 comma.
-
-                // Strategy: If it has 2 commas, strip the first part.
-                int commaCount = rawDate.length() - rawDate.replace(",", "").length();
-                if (commaCount >= 2) {
-                    int firstComma = rawDate.indexOf(",");
-                    cleanDate = rawDate.substring(firstComma + 1).trim();
-                }
-            }
-
-            // 3. Standard Parse
+            // 3. Standard Parse: "12 December, 17:00"
             // We append the current year because Moodle often hides it
             int currentYear = java.time.Year.now().getValue();
-            // cleanDate is like "28 December, 23:59"
-            String dateWithYear = cleanDate + " " + currentYear; // "28 December, 23:59 2025"
+            String dateWithYear = cleanDate + " " + currentYear; // "12 December, 17:00 2025"
 
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                     .ofPattern("d MMMM, HH:mm yyyy", java.util.Locale.ENGLISH);
@@ -256,8 +226,7 @@ public class MoodleScraper {
             return LocalDateTime.parse(dateWithYear, formatter);
 
         } catch (Exception e) {
-            System.err
-                    .println("Could not parse date: '" + rawDate + "' -> Error: " + e.getMessage() + " -> Using NOW.");
+            System.err.println("Could not parse date: '" + rawDate + "' -> Using NOW.");
             return LocalDateTime.now();
         }
     }
