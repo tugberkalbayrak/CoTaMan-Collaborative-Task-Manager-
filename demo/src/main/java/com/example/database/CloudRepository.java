@@ -180,4 +180,35 @@ public class CloudRepository {
             e.printStackTrace();
         }
     }
+
+    public boolean addFriend(ObjectId userId, ObjectId friendId) {
+        try {
+            // Kullanıcının arkadaş listesine ekle
+            rawUserCollection.updateOne(
+                    Filters.eq("_id", userId),
+                    new Document("$addToSet", new Document("friends", friendId)));
+            // Arkadaşın listesine de kullanıcıyı ekle (Karşılıklı arkadaşlık)
+            rawUserCollection.updateOne(
+                    Filters.eq("_id", friendId),
+                    new Document("$addToSet", new Document("friends", userId)));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean addMemberToGroup(ObjectId groupId, ObjectId newMemberId) {
+        try {
+            // "memberIds" listesine yeni ID'yi ekle ($addToSet ile tekrarı önle)
+            rawGroupCollection.updateOne(
+                    Filters.eq("_id", groupId),
+                    new Document("$addToSet", new Document("memberIds", newMemberId)));
+            return true;
+        } catch (Exception e) {
+            System.out.println("❌ Üye ekleme hatası: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

@@ -24,6 +24,7 @@ public class NavBar extends HBox {
     private Runnable onHomeClick;
     private Runnable onArchiveClick;
     private Runnable onSyncClick; // EKLENDİ
+    private Runnable onFriendsClick;
 
     public NavBar() {
         this.setPadding(new Insets(10, 20, 10, 20));
@@ -44,6 +45,14 @@ public class NavBar extends HBox {
                 onArchiveClick.run();
         });
 
+        // 3. YENİ: Arkadaş Butonu (Kullanıcı + Artı İkonu)
+        Button friendsBtn = createIconButton(
+                "M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z");
+        friendsBtn.setOnAction(e -> {
+            if (onFriendsClick != null)
+                onFriendsClick.run();
+        });
+
         // --- EKLENDİ: Sync Butonu (Yeşil) ---
         Button syncBtn = createIconButton(ICON_SYNC);
         syncBtn.setStyle(
@@ -55,7 +64,6 @@ public class NavBar extends HBox {
 
         Button searchBtn = createIconButton(ICON_SEARCH);
         Button settingsBtn = createIconButton(ICON_SETTINGS);
-        Button friendsBtn = createIconButton(ICON_FRIENDS);
         Button notifBtn = createIconButton(ICON_BELL);
 
         Region spacer = new Region();
@@ -83,6 +91,10 @@ public class NavBar extends HBox {
     public void setOnSyncClick(Runnable action) {
         this.onSyncClick = action;
     } // EKLENDİ
+
+    public void setOnFriendsClick(Runnable action) {
+        this.onFriendsClick = action;
+    }
 
     private Button createIconButton(String svgPathData) {
         SVGPath path = new SVGPath();

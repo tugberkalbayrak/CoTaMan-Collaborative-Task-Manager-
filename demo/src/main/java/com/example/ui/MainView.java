@@ -44,6 +44,8 @@ public class MainView extends StackPane {
         // SRS Bağlantısı
         navBar.setOnSyncClick(() -> showSRSPopup());
 
+        navBar.setOnFriendsClick(this::showAddFriendPopup);
+
         // DEĞİŞİKLİK 2: Home butonuna basınca Takvime dön
         navBar.setOnHomeClick(() -> mainLayout.setCenter(createCenterArea()));
 
@@ -271,6 +273,23 @@ public class MainView extends StackPane {
             overlayContainer.getChildren().clear();
             overlayContainer.setVisible(false);
         });
+        overlayContainer.getChildren().add(popup);
+        overlayContainer.setVisible(true);
+    }
+
+    private void showAddFriendPopup() {
+        AddFriendPopup popup = new AddFriendPopup();
+        popup.setOnCancel(() -> {
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
+
+        popup.setOnAdd((email) -> {
+            String result = SessionManager.getInstance().addFriend(email);
+            popup.setStatus(result, result.contains("Başarılı"));
+        });
+
+        overlayContainer.getChildren().clear();
         overlayContainer.getChildren().add(popup);
         overlayContainer.setVisible(true);
     }
