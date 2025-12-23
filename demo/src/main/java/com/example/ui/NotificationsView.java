@@ -37,7 +37,11 @@ public class NotificationsView extends VBox {
     List<CalendarEvent> events = SessionManager.getInstance().getUserEvents();
 
     // Filter: Only Exams, Assignments, Quizzes, Projects (Not Lectures)
+    // Filter: Only Exams, Assignments, Quizzes, Projects (Not Lectures) AND
+    // Upcoming
+    java.time.LocalDateTime now = java.time.LocalDateTime.now();
     List<CalendarEvent> importantEvents = events.stream()
+        .filter(e -> e.getEndTime().isAfter(now)) // Only upcoming
         .filter(this::isImportant)
         .sorted(Comparator.comparing(CalendarEvent::getStartTime))
         .collect(Collectors.toList());

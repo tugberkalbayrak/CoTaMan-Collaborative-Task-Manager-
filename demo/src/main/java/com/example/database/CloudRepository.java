@@ -17,7 +17,7 @@ import com.example.Entity.CalendarEvent;
 import com.example.Entity.Group;
 import com.example.Entity.User;
 import com.example.Entity.Visibility;
-import com.example.ui.components.Task; // Task import edildi
+// Task import edildi
 
 public class CloudRepository {
 

@@ -14,7 +14,6 @@ import javafx.scene.layout.VBox;
 import com.example.ui.components.*;
 import com.example.Manager.SessionManager;
 import com.example.Entity.Group;
-import com.example.Entity.Importance;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -23,7 +22,6 @@ import java.time.temporal.TemporalAdjusters;
 
 public class MainView extends StackPane {
 
-    private java.util.function.Consumer<String> onGroupClick;
     private StackPane overlayContainer;
 
     // DEĞİŞİKLİK 1: mainLayout sınıf seviyesine çıktı
@@ -215,10 +213,6 @@ public class MainView extends StackPane {
         });
 
         return lbl;
-    }
-
-    public void setOnGroupClick(java.util.function.Consumer<String> action) {
-        this.onGroupClick = action;
     }
 
     // ... (Popup metotları aynı) ...
