@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MoodleScraper implements IDataFetcher {
+public class MoodleScraper {
 
     // NOTE: Bilkent Moodle URLs change by academic year.
     // You might need to update this URL to the current active semester!
@@ -107,7 +107,6 @@ public class MoodleScraper implements IDataFetcher {
         }
     }
 
-    @Override
     public ArrayList<CalendarEvent> fetchEvents() {
         ArrayList<CalendarEvent> moodleEvents = new ArrayList<>();
 
@@ -183,11 +182,6 @@ public class MoodleScraper implements IDataFetcher {
         }
 
         return moodleEvents;
-    }
-
-    @Override
-    public ArrayList<AcademicFile> fetchFiles() {
-        return new ArrayList<>();
     }
 
     // Helper to turn a Map into "key=value&key2=value2" string
