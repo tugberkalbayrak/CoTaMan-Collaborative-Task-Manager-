@@ -27,6 +27,11 @@ public class ArchiveView extends StackPane {
     // Listeyi sınıf seviyesine çıkardık ki her yerden erişip yenileyebilelim
     private VBox fileListVBox;
 
+    private boolean isPrivateView = false; // Hangi moddayız?
+    private Label pathLabel; // Yolu dinamik değiştirmek için
+
+    private String selectedCourseCode = null; // Seçili dersi tutmak için
+
     public ArchiveView() {
         BorderPane mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
@@ -83,7 +88,7 @@ public class ArchiveView extends StackPane {
         topBar.getChildren().addAll(searchTriggerBtn, filterIconBtn, spacer, searchFolderBtn, uploadBtn);
 
         // --- BREADCRUMB ---
-        Label pathLabel = new Label("Public Archive > All Files");
+        pathLabel = new Label("Public Archive > All Files");
         pathLabel.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-style: italic;");
 
         // --- DOSYA LİSTESİ ---
@@ -104,33 +109,33 @@ public class ArchiveView extends StackPane {
     private void refreshFileList() {
         // 1. Mevcut listeyi temizle
         fileListVBox.getChildren().clear();
-
-        // 2. SessionManager üzerinden veritabanındaki dosyaları çek
-        List<AcademicFile> dbFiles = SessionManager.getInstance().getPublicFiles();
-
+        // 2. Moda göre dosyaları çek (Public veya Private)
+        List<AcademicFile> dbFiles;
+        if (isPrivateView) {
+            dbFiles = SessionManager.getInstance().getPrivateFiles(); // Sadece benimkiler
+        } else if (selectedCourseCode != null) {
+            dbFiles = SessionManager.getInstance().getFilesByCourse(selectedCourseCode);
+        } else {
+            dbFiles = SessionManager.getInstance().getPublicFiles(); // Herkesinkiler
+        }
         if (dbFiles.isEmpty()) {
-            Label emptyLbl = new Label("No files found. Be the first to upload!");
+            Label emptyLbl = new Label(isPrivateView ? "You have no private files." : "No public files found.");
             emptyLbl.setStyle("-fx-text-fill: gray; -fx-font-size: 14px;");
             fileListVBox.getChildren().add(emptyLbl);
         } else {
-            // 3. Her dosya için bir FileItem oluştur
             for (AcademicFile file : dbFiles) {
                 String uploaderName = (file.getUploader() != null) ? file.getUploader().getFullName() : "Unknown";
 
-                // FileItem(FileName, Date, Uploader)
                 FileItem item = new FileItem(file.getFileName(), "Recently", uploaderName);
 
-                // --- YENİ EKLENEN KISIM: TIKLAMA İŞLEMİ ---
+                // Tıklayınca Açma
                 item.setOnAction(() -> {
-                    System.out.println("Dosya açılıyor: " + file.getFileName());
-                    // Repository üzerinden dosyayı aç
                     SessionManager.getInstance().getRepository().openFile(file);
                 });
 
                 fileListVBox.getChildren().add(item);
             }
         }
-        System.out.println("Arşiv yenilendi. Dosya sayısı: " + dbFiles.size());
     }
 
     // --- UPLOAD POPUP VE KAYIT ---
@@ -149,14 +154,15 @@ public class ArchiveView extends StackPane {
             String type = popup.getFileType();
             String visibility = popup.getVisibility();
 
+            // --- YENİ KISIM: Seçilen Dosyanın Yolunu Al ---
+            java.io.File selectedFile = popup.getSelectedFile();
+            String filePath = (selectedFile != null) ? selectedFile.getAbsolutePath() : "";
             if (name != null && !name.isEmpty()) {
-                // 1. Veritabanına Kaydet (SessionManager Aracılığıyla)
-                SessionManager.getInstance().uploadFile(name, course, type, visibility);
-
+                // 1. Veritabanına Kaydet (Dosya Yolu ile birlikte)
+                SessionManager.getInstance().uploadFile(name, filePath, course, type, visibility);
                 // 2. Listeyi Yenile (Anında görünsün)
                 refreshFileList();
             }
-
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
         });
@@ -197,33 +203,61 @@ public class ArchiveView extends StackPane {
         box.setPadding(new Insets(20));
         box.setPrefWidth(250);
         box.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1 + ";");
-
         Label title = new Label("Folders");
         title.setFont(Theme.getHeaderFont());
         title.setStyle("-fx-text-fill: " + Theme.SECONDARY_COLOR + "; -fx-font-size: 20px;");
+        // --- GİZLİ KÖK ---
+        TreeItem<String> root = new TreeItem<>("Root");
+        // 1. Private Archive (Sadece bana özel)
+        TreeItem<String> privateItem = new TreeItem<>("Private Archive (My Files)");
 
-        TreeItem<String> rootItem = new TreeItem<>("Public Archive");
-        rootItem.setExpanded(true);
-
+        // 2. Public Archive (Herkese açık)
+        TreeItem<String> publicItem = new TreeItem<>("Public Archive");
+        publicItem.setExpanded(true); // Alt klasörleri açık gelsin
+        // Public Alt Klasörler
         TreeItem<String> csFolder = new TreeItem<>("CS");
-        TreeItem<String> cs102 = new TreeItem<>("CS102");
-        cs102.getChildren().addAll(
-                new TreeItem<>("Syllabus"),
-                new TreeItem<>("Old Exams"),
-                new TreeItem<>("Lecture Notes"));
-        csFolder.getChildren().add(cs102);
+        csFolder.getChildren().addAll(new TreeItem<>("CS102"), new TreeItem<>("CS201"));
+        publicItem.getChildren().add(csFolder);
 
         TreeItem<String> mathFolder = new TreeItem<>("MATH");
-        mathFolder.getChildren().add(new TreeItem<>("MATH102"));
-
-        rootItem.getChildren().addAll(csFolder, mathFolder);
-
-        TreeView<String> treeView = new TreeView<>(rootItem);
+        mathFolder.getChildren().add(new TreeItem<>("MATH101"));
+        publicItem.getChildren().add(mathFolder);
+        root.getChildren().addAll(privateItem, publicItem);
+        TreeView<String> treeView = new TreeView<>(root);
+        treeView.setShowRoot(false); // "Root" yazısını gizle
         treeView.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-control-inner-background: " + Theme.PANEL_COLOR1 + ";" +
                         "-fx-text-fill: white;");
+        // --- TIKLAMA OLAYI (Seçime göre liste yenileme) ---
+        treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                String val = newVal.getValue();
 
+                // Eğer seçilen değer bir ders kodu ise (Örn: CS102, MATH101)
+                if (val.matches("[A-Z]{2,4}[0-9]{3}")) {
+                    selectedCourseCode = val;
+                    isPrivateView = false;
+                    if (pathLabel != null)
+                        pathLabel.setText("Public Archive > " + val);
+                }
+                // Private Archive seçildiyse
+                else if (val.contains("Private")) {
+                    selectedCourseCode = null;
+                    isPrivateView = true;
+                    if (pathLabel != null)
+                        pathLabel.setText("Private Archive > My Files");
+                }
+                // Diğer durumlar (Public Archive kökü vb.)
+                else {
+                    selectedCourseCode = null;
+                    isPrivateView = false;
+                    if (pathLabel != null)
+                        pathLabel.setText("Public Archive > All Files");
+                }
+                refreshFileList();
+            }
+        });
         box.getChildren().addAll(title, treeView);
         return box;
     }

@@ -18,52 +18,54 @@ import com.example.Entity.User;
 import com.example.WebScraping.CalendarScraper;
 
 public class TestApp {
-    public static void main(String[] args) {
-        System.out.println("--- CoTaMan Tam Sistem Testi ---");
+        public static void main(String[] args) {
+                System.out.println("--- CoTaMan Tam Sistem Testi ---");
 
-        CloudRepository repo = new CloudRepository();
+                CloudRepository repo = new CloudRepository();
 
-        User u1 = new User("kaan öztürk", "kaanemre@gmail", "sifreossurdum", "22403611");
-        repo.saveUser(u1);
+                User u1 = new User("kaan öztürk", "kaanemre@gmail", "sifreossurdum", "22403611");
+                repo.saveUser(u1);
 
-        CalendarEvent ders = new CalendarEvent(
-                u1,
-                "CS102 Dersi",
-                "B-Z01",
-                LocalDateTime.now(),
-                LocalDateTime.now().plusHours(1),
-                Importance.OPTIONAL);
-        repo.saveEvent(ders);
+                CalendarEvent ders = new CalendarEvent(
+                                u1,
+                                "CS102 Dersi",
+                                "B-Z01",
+                                LocalDateTime.now(),
+                                LocalDateTime.now().plusHours(1),
+                                Importance.OPTIONAL);
+                repo.saveEvent(ders);
 
-        List<CalendarEvent> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
-        System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
+                List<CalendarEvent> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
+                System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
 
-        AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1, FileType.LECTURE_NOTE,
-                Visibility.PUBLIC);
+                // AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1,
+                // FileType.LECTURE_NOTE,
+                // Visibility.PUBLIC);
 
-        repo.saveFileMetadata(notlar);
+                // repo.saveFileMetadata(notlar);
 
-        AcademicFile yeniNot = new AcademicFile();
-        yeniNot.setFileName("yeni not");
-        yeniNot.setDiskPath("C:\\Users\\lekol\\Downloads\\İstanbul şehri (2).pdf");
-        yeniNot.setUploader(u1);
-        repo.saveFileMetadata(yeniNot);
+                AcademicFile yeniNot = new AcademicFile();
+                yeniNot.setFileName("yeni not");
+                yeniNot.setDiskPath("C:\\Users\\lekol\\Downloads\\İstanbul şehri (2).pdf");
+                yeniNot.setUploader(u1);
+                repo.saveFileMetadata(yeniNot);
 
-        CalendarScraper scraper = new CalendarScraper();
+                CalendarScraper scraper = new CalendarScraper();
 
-        // List<DateInfo> tarihler = scraper.fetchDates();
-        // repo.saveAllDates(tarihler);
+                // List<DateInfo> tarihler = scraper.fetchDates();
+                // repo.saveAllDates(tarihler);
 
-        System.out.println("--- Test Tamamlandı ---");
+                System.out.println("--- Test Tamamlandı ---");
 
-        // AcademicFile secilenDosya = repo.getFileByName(yeniNot.getFileName());
+                // AcademicFile secilenDosya = repo.getFileByName(yeniNot.getFileName());
 
-        AcademicFile dersNotu = new AcademicFile("internetDosyası",
-                "https://drive.google.com/file/d/1BCMb0E9TRTjhxqjcjZJRWSs46vwNWtH7/view?usp=drive_link", u1,
-                FileType.LECTURE_NOTE, Visibility.PUBLIC);
-        repo.saveFileMetadata(dersNotu);
+                // AcademicFile dersNotu = new AcademicFile("internetDosyası",
+                // "https://drive.google.com/file/d/1BCMb0E9TRTjhxqjcjZJRWSs46vwNWtH7/view?usp=drive_link",
+                // u1,
+                // FileType.LECTURE_NOTE, Visibility.PUBLIC);
+                // repo.saveFileMetadata(dersNotu);
 
-        repo.openFile(dersNotu);
+                // repo.openFile(dersNotu);
 
-    }
+        }
 }

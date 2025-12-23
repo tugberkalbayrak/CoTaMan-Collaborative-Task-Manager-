@@ -211,4 +211,25 @@ public class CloudRepository {
             return false;
         }
     }
+
+    public List<AcademicFile> getPrivateFiles(ObjectId userId) {
+        List<AcademicFile> files = new ArrayList<>();
+        // Hem 'uploader' ID'si benim ID'm olmalı, hem de visibility 'PRIVATE' olmalı
+        fileCollection.find(
+                Filters.and(
+                        Filters.eq("uploader._id", userId),
+                        Filters.eq("visibility", Visibility.PRIVATE)))
+                .into(files);
+        return files;
+    }
+
+    public List<AcademicFile> getPublicFilesByCourse(String courseCode) {
+        List<AcademicFile> files = new ArrayList<>();
+        fileCollection.find(
+                Filters.and(
+                        Filters.eq("visibility", Visibility.PUBLIC),
+                        Filters.eq("courseCode", courseCode)))
+                .into(files);
+        return files;
+    }
 }

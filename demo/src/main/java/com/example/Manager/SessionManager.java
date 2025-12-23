@@ -204,12 +204,23 @@ public class SessionManager {
         return repository.getPublicFiles();
     }
 
-    public void uploadFile(String n, String c, String t, String v) {
+    // filePath parametresi eklenmiş GÜNCELLENMİŞ uploadFile metodu
+    public void uploadFile(String n, String filePath, String c, String t, String v) {
         if (currentUser == null)
             return;
-        repository.saveFileMetadata(new AcademicFile(n, "path", currentUser,
-                t.equals("Syllabus") ? FileType.SYLLABUS : FileType.LECTURE_NOTE,
-                v.contains("Group") ? Visibility.GROUP : Visibility.PUBLIC));
+        // Görünürlük Ayarı
+        Visibility visibility = Visibility.PUBLIC;
+        if (v != null) {
+            if (v.contains("Group"))
+                visibility = Visibility.GROUP;
+            else if (v.contains("Private"))
+                visibility = Visibility.PRIVATE;
+        }
+        // Dosya Tipi Ayarı (Null kontrolü eklendi)
+        // Eğer t null ise veya Syllabus değilse varsayılan olarak LECTURE_NOTE atanır.
+        FileType fileType = (t != null && t.equals("Syllabus")) ? FileType.SYLLABUS : FileType.LECTURE_NOTE;
+        // Dosya yolunu (filePath) AcademicFile içine kaydediyoruz
+        repository.saveFileMetadata(new AcademicFile(n, filePath, currentUser, fileType, visibility, c));
     }
 
     public User getCurrentUser() {
@@ -345,5 +356,15 @@ public class SessionManager {
         } else {
             return "Veritabanı hatası oluştu.";
         }
+    }
+
+    public List<AcademicFile> getPrivateFiles() {
+        if (currentUser == null)
+            return new ArrayList<>();
+        return repository.getPrivateFiles(currentUser.getId());
+    }
+
+    public List<AcademicFile> getFilesByCourse(String courseCode) {
+        return repository.getPublicFilesByCourse(courseCode);
     }
 }

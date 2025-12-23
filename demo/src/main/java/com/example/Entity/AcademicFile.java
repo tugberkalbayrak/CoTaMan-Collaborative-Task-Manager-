@@ -12,18 +12,23 @@ public class AcademicFile {
     private FileType type;
     private Visibility visibility;
     private List<String> versionHistoryPaths;
+    private String courseCode; // --- YENİ ALAN ---
 
-    public AcademicFile() {}
+    public AcademicFile() {
+    }
 
-    public AcademicFile(String fileName, String downloadLink, User uploader, FileType type, Visibility visibility) {
+    public AcademicFile(String fileName, String downloadLink, User uploader, FileType type, Visibility visibility,
+            String courseCode) {
         this.fileName = fileName;
         this.diskPath = downloadLink;
         this.uploader = uploader;
         this.type = type;
         this.visibility = visibility;
+        this.courseCode = courseCode;
     }
 
-    public void createNewVersion(String newPath, User editor) {}
+    public void createNewVersion(String newPath, User editor) {
+    }
 
     public ObjectId getFileId() {
         return fileId;
@@ -79,5 +84,13 @@ public class AcademicFile {
 
     public void setVersionHistoryPaths(List<String> versionHistoryPaths) {
         this.versionHistoryPaths = versionHistoryPaths;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
     }
 }

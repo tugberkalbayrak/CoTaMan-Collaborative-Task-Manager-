@@ -27,25 +27,25 @@ public class ArchiveInteractionHandler {
 
     public void onFileDrop(File rawFile, String fileName, String courseCode, String visibilityStr, User uploader) {
         if (rawFile != null && rawFile.exists()) {
-            
+
             // Map Visibility String from UI to Enum
             Visibility vis = Visibility.PUBLIC;
             if (visibilityStr != null) {
-                if(visibilityStr.equalsIgnoreCase("Group Only")) {
+                if (visibilityStr.equalsIgnoreCase("Group Only")) {
                     vis = Visibility.GROUP;
-                } else if(visibilityStr.equalsIgnoreCase("Private (Only Me)")) {
+                } else if (visibilityStr.equalsIgnoreCase("Private (Only Me)")) {
                     vis = Visibility.PRIVATE;
                 }
             }
 
             // Create Database Entity
             AcademicFile newFile = new AcademicFile(
-                fileName,
-                rawFile.getAbsolutePath(), // Storing path as download link
-                uploader,
-                FileType.LECTURE_NOTE, // Defaulting to OTHER, ideally logic detects extension
-                vis
-            );
+                    fileName,
+                    rawFile.getAbsolutePath(), // Storing path as download link
+                    uploader,
+                    FileType.LECTURE_NOTE, // Defaulting to OTHER, ideally logic detects extension
+                    vis,
+                    courseCode);
 
             // Save to Cloud Repository
             repository.saveFileMetadata(newFile);
