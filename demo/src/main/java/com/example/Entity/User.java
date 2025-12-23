@@ -30,7 +30,7 @@ public class User {
     private List<Group> enrolledGroups = new ArrayList<>();
 
     @BsonProperty("friends")
-    private List<User> friends = new ArrayList<>();
+    private List<ObjectId> friends;
 
     public User() {
     }
@@ -105,11 +105,11 @@ public class User {
         this.enrolledGroups = enrolledGroups;
     }
 
-    public List<User> getFriends() {
+    public List<ObjectId> getFriends() {
         return friends;
     }
 
-    public void setFriends(List<User> friends) {
+    public void setFriends(List<ObjectId> friends) {
         this.friends = friends;
     }
 }

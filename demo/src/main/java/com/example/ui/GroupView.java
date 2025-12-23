@@ -1,68 +1,70 @@
 package com.example.ui;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.BorderPane; // Kullanmasak da import kalsın hata vermesin
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane; // Popup için gerekli
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import com.example.ui.components.*;
 import com.example.Entity.Group;
 import com.example.Entity.User;
 import com.example.Manager.SessionManager;
 import javafx.collections.FXCollections;
-import javafx.geometry.Pos;
+import java.util.List;
 
-// BorderPane yerine StackPane yapıyoruz ki Popup açabilelim
 public class GroupView extends StackPane {
 
     private Group currentGroup;
     private TableView<Task> taskTable;
     private StackPane overlayContainer;
 
+    // Anlık avatar güncellemesi için sınıf seviyesinde
+    private HBox avatarsContainer;
+
     public GroupView(Group group) {
         this.currentGroup = group;
         this.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
-        // --- NAV BAR SİLİNDİ (Çünkü MainView'da zaten var) ---
-
-        // ANA İÇERİK KUTUSU
         HBox contentBox = new HBox(20);
         contentBox.setPadding(new Insets(20));
 
-        // SOL KOLON (Task Tracker + Meetings) - Esnek genişlik
+        // Sol Kolon (Esnek)
         VBox leftColumn = createLeftColumn();
         HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
-        // SAĞ KOLON (Files + Members) - Sabit genişlik
+        // Sağ Kolon (Sabit)
         VBox rightColumn = createRightColumn();
         rightColumn.setPrefWidth(300);
         rightColumn.setMinWidth(300);
 
         contentBox.getChildren().addAll(leftColumn, rightColumn);
 
-        // Popup Overlay (Gizli)
+        // Popup Overlay
         overlayContainer = new StackPane();
         overlayContainer.setVisible(false);
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
 
-        // Hepsini StackPane'e ekle (İçerik altta, Overlay üstte)
         this.getChildren().addAll(contentBox, overlayContainer);
     }
 
-    // --- NavBar Getter ARTIK YOK ---
-
-    // --- SOL KOLON (Görevler ve Toplantı) ---
+    // --- SOL KOLON (Header + Meetings + Tasks) ---
     private VBox createLeftColumn() {
         VBox box = new VBox(20);
 
-        // Başlık Alanı
+        // 1. BAŞLIK ALANI
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -78,15 +80,45 @@ public class GroupView extends StackPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Task Ekleme Butonu
-        CoTaButton addTaskBtn = new CoTaButton("+ Add Task", CoTaButton.StyleType.PRIMARY);
+        HBox buttonsBox = new HBox(10);
+        CoTaButton meetingBtn = new CoTaButton("⏱ Schedule", CoTaButton.StyleType.SECONDARY);
+        meetingBtn.setOnAction(e -> showMeetingPopup());
+
+        CoTaButton addTaskBtn = new CoTaButton("+ Task", CoTaButton.StyleType.PRIMARY);
         addTaskBtn.setOnAction(e -> showAddTaskPopup());
 
-        header.getChildren().addAll(titleBox, spacer, addTaskBtn);
+        buttonsBox.getChildren().addAll(meetingBtn, addTaskBtn);
+        header.getChildren().addAll(titleBox, spacer, buttonsBox);
 
-        // Tablo (Task Tracker)
+        // 2. TOPLANTI LİSTESİ (Upcoming/Past)
+        VBox meetingSection = createMeetingSection();
+
+        // 3. GÖREV TABLOSU (TASK TABLE)
         taskTable = new TableView<>();
         styleTable(taskTable);
+
+        // Sağ Tık Menüsü
+        taskTable.setRowFactory(tv -> {
+            TableRow<Task> row = new TableRow<>();
+            ContextMenu contextMenu = new ContextMenu();
+
+            MenuItem itemComplete = new MenuItem("Mark as Completed");
+            itemComplete.setOnAction(e -> updateTaskStatus(row.getItem(), "Completed", "#27AE60"));
+
+            MenuItem itemProgress = new MenuItem("Mark as In Progress");
+            itemProgress.setOnAction(e -> updateTaskStatus(row.getItem(), "In Progress", "#E67E22"));
+
+            MenuItem itemNotStarted = new MenuItem("Mark as Not Started");
+            itemNotStarted.setOnAction(e -> updateTaskStatus(row.getItem(), "Not Started", "#C0392B"));
+
+            contextMenu.getItems().addAll(itemProgress, itemComplete, itemNotStarted);
+
+            row.contextMenuProperty().bind(
+                    javafx.beans.binding.Bindings.when(row.emptyProperty())
+                            .then((ContextMenu) null)
+                            .otherwise(contextMenu));
+            return row;
+        });
 
         // Kolonlar
         TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
@@ -101,7 +133,7 @@ public class GroupView extends StackPane {
         TableColumn<Task, String> colStatus = new TableColumn<>("Status");
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Status Rengini Ayarlama
+        // Status Renklendirme
         colStatus.setCellFactory(column -> new TableCell<Task, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -122,76 +154,196 @@ public class GroupView extends StackPane {
         });
 
         taskTable.getColumns().addAll(colTask, colOwner, colDate, colStatus);
-
-        // Verileri Yükle
         refreshTasks();
 
-        box.getChildren().addAll(header, taskTable);
+        // Sıralama: Header -> Toplantılar -> Tablo
+        box.getChildren().addAll(header, meetingSection, taskTable);
         return box;
     }
 
-    // --- SAĞ KOLON (Dosyalar ve Üyeler) ---
+    // --- SAĞ KOLON (Files + Members) ---
     private VBox createRightColumn() {
         VBox box = new VBox(20);
 
-        // 1. Grup Dosyaları
+        // 1. DOSYALAR
         VBox fileSection = new VBox(10);
         fileSection.setStyle(
                 "-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-background-radius: 15; -fx-padding: 15;");
-
         Label filesTitle = new Label("Recent Files");
         filesTitle.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-
         VBox fileList = new VBox(5);
-        fileList.getChildren().add(new Label("• Syllabus.pdf")); // Dummy data
+        fileList.getChildren().add(new Label("• Syllabus.pdf"));
         Label uploadLink = new Label("↑ Upload File");
         uploadLink.setStyle("-fx-text-fill: " + Theme.PRIMARY_COLOR
                 + "; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 12px;");
-
         fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
 
-        // 2. Üyeler
+        // 2. ÜYELER
         VBox memberSection = new VBox(10);
         memberSection.setStyle(
                 "-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-background-radius: 15; -fx-padding: 15;");
 
+        HBox memberHeader = new HBox();
+        memberHeader.setAlignment(Pos.CENTER_LEFT);
         Label memberTitle = new Label("Members");
         memberTitle.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
+        Region spacerMember = new Region();
+        HBox.setHgrow(spacerMember, Priority.ALWAYS);
 
-        HBox avatars = new HBox(10);
-        // Backend'den üyeleri çek
+        Label addMemberBtn = new Label("+");
+        addMemberBtn.setStyle("-fx-text-fill: " + Theme.PRIMARY_COLOR
+                + "; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;");
+        addMemberBtn.setOnMouseClicked(e -> showAddMemberPopup());
+
+        memberHeader.getChildren().addAll(memberTitle, spacerMember, addMemberBtn);
+
+        avatarsContainer = new HBox(10);
         for (User member : SessionManager.getInstance().getGroupMembers(currentGroup)) {
-            String initials = member.getFullName().substring(0, 1).toUpperCase();
-            avatars.getChildren().add(createAvatar(initials));
+            String initials = getInitials(member.getFullName());
+            avatarsContainer.getChildren().add(createAvatar(initials));
         }
 
-        memberSection.getChildren().addAll(memberTitle, avatars);
-
+        memberSection.getChildren().addAll(memberHeader, avatarsContainer);
         box.getChildren().addAll(fileSection, memberSection);
         return box;
     }
 
-    // POPUP MANTIĞI
-    private void showAddTaskPopup() {
-        AddTaskPopup popup = new AddTaskPopup();
+    // --- TOPLANTI LİSTESİ METODU ---
+    private VBox createMeetingSection() {
+        VBox container = new VBox(10);
+        container.setPadding(new Insets(0, 0, 15, 0));
 
+        Label sectionTitle = new Label("📅 Group Meetings");
+        sectionTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+
+        VBox listContainer = new VBox(8);
+        List<com.example.Entity.CalendarEvent> allEvents = SessionManager.getInstance().getUserEvents();
+        boolean found = false;
+        String searchTitle = "Meeting: " + currentGroup.getGroupName();
+
+        for (com.example.Entity.CalendarEvent event : allEvents) {
+            if (event.getTitle().startsWith(searchTitle)) {
+                found = true;
+                listContainer.getChildren().add(createMeetingItem(event));
+            }
+        }
+
+        if (!found) {
+            Label empty = new Label("No meetings scheduled yet.");
+            empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+            listContainer.getChildren().add(empty);
+        }
+
+        container.getChildren().addAll(sectionTitle, listContainer);
+        return container;
+    }
+
+    private HBox createMeetingItem(com.example.Entity.CalendarEvent event) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(10));
+        row.setStyle("-fx-background-color: #34495E; -fx-background-radius: 10;");
+
+        boolean isPast = event.getEndTime().isBefore(java.time.LocalDateTime.now());
+
+        Label statusIcon = new Label(isPast ? "✔ Past" : "⏳ Upcoming");
+        statusIcon.setStyle(
+                "-fx-text-fill: " + (isPast ? "#95A5A6" : "#F1C40F") + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+        statusIcon.setMinWidth(70);
+
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM - HH:mm");
+        Label dateLbl = new Label(event.getStartTime().format(fmt));
+        dateLbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        row.getChildren().addAll(dateLbl, spacer, statusIcon);
+        if (isPast)
+            row.setOpacity(0.6);
+        return row;
+    }
+
+    // --- POPUP VE AKSİYONLAR ---
+
+    private void showAddMemberPopup() {
+        AddMemberPopup popup = new AddMemberPopup();
         popup.setOnCancel(() -> {
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
         });
 
+        popup.setOnAdd((selectedFriend) -> {
+            String result = SessionManager.getInstance().addMemberToGroup(currentGroup, selectedFriend);
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Add Member Status");
+            alert.setHeaderText(null);
+            alert.setContentText(result);
+            alert.showAndWait();
+
+            if (result.contains("Başarılı")) {
+                String initials = getInitials(selectedFriend.getFullName());
+                avatarsContainer.getChildren().add(createAvatar(initials));
+            }
+        });
+        overlayContainer.getChildren().clear();
+        overlayContainer.getChildren().add(popup);
+        overlayContainer.setVisible(true);
+    }
+
+    private void showAddTaskPopup() {
+        AddTaskPopup popup = new AddTaskPopup();
+        popup.setOnCancel(() -> {
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
         popup.setOnAdd((name, date) -> {
-            // Backend'e kaydet
             SessionManager.getInstance().addTask(currentGroup, name, date, "In Progress");
             refreshTasks();
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
+        overlayContainer.getChildren().clear();
+        overlayContainer.getChildren().add(popup);
+        overlayContainer.setVisible(true);
+    }
 
+    private void showMeetingPopup() {
+        List<com.example.Entity.TimeSlot> suggestions = SessionManager.getInstance().findCommonSlots(currentGroup);
+        MeetingSchedulerPopup popup = new MeetingSchedulerPopup(suggestions);
+        popup.setOnCancel(() -> {
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
         });
 
+        popup.setOnSave((time) -> {
+            SessionManager.getInstance().scheduleMeeting(currentGroup, time);
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+
+            // SAYFAYI YENİLE (Toplantı listesi güncellensin diye)
+            if (getParent() instanceof BorderPane) {
+                ((BorderPane) getParent()).setCenter(new GroupView(currentGroup));
+            }
+        });
         overlayContainer.getChildren().clear();
         overlayContainer.getChildren().add(popup);
         overlayContainer.setVisible(true);
+    }
+
+    // --- YARDIMCI METOTLAR ---
+
+    private void updateTaskStatus(Task task, String status, String color) {
+        if (task == null)
+            return;
+        task.setStatus(status);
+        task.setColor(color);
+        // DB güncellemesi (SessionManager'da metot varsa):
+        // SessionManager.getInstance().updateTaskStatus(currentGroup, task, status);
+        taskTable.refresh();
     }
 
     private void refreshTasks() {
@@ -207,9 +359,21 @@ public class GroupView extends StackPane {
         return avatar;
     }
 
+    private String getInitials(String fullName) {
+        if (fullName == null || fullName.isEmpty())
+            return "?";
+        String[] parts = fullName.split(" ");
+        String initials = "";
+        if (parts.length > 0)
+            initials += parts[0].substring(0, 1);
+        if (parts.length > 1)
+            initials += parts[parts.length - 1].substring(0, 1);
+        return initials.toUpperCase();
+    }
+
     private void styleTable(TableView<?> table) {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        table.setPrefHeight(400); // Tablo yüksekliği
+        table.setPrefHeight(400);
         table.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-control-inner-background: "
                 + Theme.PANEL_COLOR1 + "; -fx-table-cell-border-color: transparent; -fx-text-fill: white;");
         VBox.setVgrow(table, Priority.ALWAYS);

@@ -12,6 +12,12 @@ import com.example.Entity.WeeklyLecture;
 import com.example.WebScraping.SRSScraper;
 import com.example.Handlers.AuthenticationHandler;
 import com.example.ui.components.Task; // Task import
+import com.example.Services.ArchiveService.CalendarService.IntelligentMeetingSchedular;
+import com.example.Entity.TimeSlot;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import com.example.Entity.Importance;
 
 import org.bson.types.ObjectId;
 import java.time.LocalDate;
@@ -212,5 +218,132 @@ public class SessionManager {
 
     public CloudRepository getRepository() {
         return repository;
+    }
+
+    public List<TimeSlot> findCommonSlots(Group group) {
+        if (group == null)
+            return new ArrayList<>();
+
+        // A) Üyelerin güncel takvimlerini çek
+        List<User> membersWithSchedule = new ArrayList<>();
+        for (ObjectId memberId : group.getMemberIds()) {
+            User u = repository.getUserById(memberId);
+            if (u != null) {
+                List<CalendarEvent> events = repository.getEventsForUser(memberId);
+                u.setSchedule(events);
+                membersWithSchedule.add(u);
+            }
+        }
+        group.setMembers(membersWithSchedule);
+
+        // B) Algoritmayı Çalıştır
+        IntelligentMeetingSchedular scheduler = new IntelligentMeetingSchedular();
+
+        // 7 günlük tarama, en az 1 saatlik boşluklar
+        return scheduler.findCommonSlots(
+                group,
+                Duration.ofHours(1),
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(7));
+    }
+
+    public void scheduleMeeting(Group group, String timeString) {
+        if (group == null || timeString == null)
+            return;
+
+        System.out.println("Toplantı Planlanıyor: " + timeString);
+
+        // Gelen Format: "25 Dec 2025 - 14:00 - 15:30"
+        try {
+            String[] parts = timeString.split(" - ");
+            String dateStr = parts[0]; // 25 Dec 2025
+            String startStr = parts[1]; // 14:00
+            String endStr = parts[2]; // 15:30
+
+            DateTimeFormatter dateTimeFmt = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
+
+            LocalDateTime start = LocalDateTime.parse(dateStr + " " + startStr, dateTimeFmt);
+            LocalDateTime end = LocalDateTime.parse(dateStr + " " + endStr, dateTimeFmt);
+
+            // Tüm üyelere dağıt
+            for (ObjectId memberId : group.getMemberIds()) {
+                User member = repository.getUserById(memberId);
+                if (member != null) {
+                    CalendarEvent meeting = new CalendarEvent(
+                            member,
+                            "Meeting: " + group.getGroupName(),
+                            "Scheduled via CoTaMan",
+                            start,
+                            end,
+                            Importance.MUST);
+                    repository.saveEvent(meeting);
+                }
+            }
+            System.out.println("✅ Toplantı (" + startStr + "-" + endStr + ") tüm gruba işlendi!");
+
+        } catch (Exception e) {
+            System.out.println("❌ Tarih formatı hatası: " + e.getMessage());
+        }
+    }
+
+    public String addFriend(String friendEmail) {
+        if (currentUser == null)
+            return "Giriş yapılmamış!";
+        if (friendEmail.equals(currentUser.getEmail()))
+            return "Kendini ekleyemezsin.";
+
+        User friend = repository.getUserByEmail(friendEmail);
+        if (friend == null)
+            return "Kullanıcı bulunamadı.";
+
+        if (currentUser.getFriends().contains(friend.getId())) {
+            return "Zaten arkadaşsınız.";
+        }
+
+        boolean success = repository.addFriend(currentUser.getId(), friend.getId());
+        if (success) {
+            currentUser.getFriends().add(friend.getId());
+            return "Başarılı! " + friend.getFullName() + " arkadaş eklendi.";
+        }
+        return "Hata oluştu.";
+    }
+
+    public List<User> getFriendsList() {
+        List<User> friendList = new ArrayList<>();
+        if (currentUser == null)
+            return friendList;
+
+        // Kullanıcının arkadaş ID'lerini tek tek User nesnesine çevir
+        for (ObjectId friendId : currentUser.getFriends()) {
+            User u = repository.getUserById(friendId);
+            if (u != null)
+                friendList.add(u);
+        }
+        return friendList;
+    }
+
+    // 2. Seçilen Arkadaşı Gruba Ekle
+    public String addMemberToGroup(Group group, User friend) {
+        if (group == null || friend == null)
+            return "Hata: Seçim geçersiz.";
+
+        // Zaten üye mi?
+        if (group.getMemberIds().contains(friend.getId())) {
+            return "Bu kullanıcı zaten grupta ekli.";
+        }
+
+        // Veritabanına Yaz
+        boolean success = repository.addMemberToGroup(group.getId(), friend.getId());
+
+        if (success) {
+            // Ekran anında güncellensin diye RAM'deki listeye de ekle
+            group.getMemberIds().add(friend.getId());
+            if (group.getMembers() != null)
+                group.getMembers().add(friend);
+
+            return "Başarılı! " + friend.getFullName() + " eklendi.";
+        } else {
+            return "Veritabanı hatası oluştu.";
+        }
     }
 }
