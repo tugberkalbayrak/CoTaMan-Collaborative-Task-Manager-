@@ -264,7 +264,7 @@ public class MainView extends StackPane {
                 String startStr = targetDate.toString() + "T" + (String.format("%02d", 8 + timeIndex)) + ":00";
                 String endStr = targetDate.toString() + "T" + (String.format("%02d", 9 + timeIndex)) + ":00";
 
-                SessionManager.getInstance().addEvent(name, startStr, endStr, com.example.Entity.Importance.MUST);
+                SessionManager.getInstance().addEvent(name, startStr, endStr, popup.getSelectedImportance());
 
                 calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
             }
