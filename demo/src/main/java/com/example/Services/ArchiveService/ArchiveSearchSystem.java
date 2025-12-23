@@ -6,19 +6,38 @@ import com.example.Entity.FileType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ArchiveSearchSystem {
 
     public List<AcademicFile> searchFiles(Group group, String query, FileType typeFilter) {
-        if (group.getGroupArchive() == null)
-            return new ArrayList<>();
 
-        return group.getGroupArchive().stream()
-                .filter(f -> query == null || query.isEmpty()
-                        || f.getFileName().toLowerCase().contains(query.toLowerCase()))
+        List<AcademicFile> result = new ArrayList<>();
+        if (group.getGroupArchive() == null) {
+            return result;
+        }
+        for (AcademicFile file : group.getGroupArchive()) {
+            boolean matchesQuery = false;
+            boolean matchesType = false;
+            if (query == null || query.isEmpty()) {
+                matchesQuery = true;
+            } else {
+                if (file.getFileName() != null &&
+                        file.getFileName().toLowerCase().contains(query.toLowerCase())) {
+                    matchesQuery = true;
+                }
+            }
+            if (typeFilter == null) {
+                matchesType = true;
+            } else {
+                if (file.getType() == typeFilter) {
+                    matchesType = true;
+                }
+            }
+            if (matchesQuery && matchesType) {
+                result.add(file);
+            }
+        }
 
-                .filter(f -> typeFilter == null || f.getType() == typeFilter)
-                .collect(Collectors.toList());
+        return result;
     }
 }
