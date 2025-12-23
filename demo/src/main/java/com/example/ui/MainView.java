@@ -73,6 +73,14 @@ public class MainView extends StackPane {
         overlayContainer.setVisible(false);
 
         this.getChildren().addAll(mainLayout, addEventFab, overlayContainer);
+
+        // Listen for background updates (e.g. Moodle Auto-Fetch)
+        SessionManager.getInstance().setOnEventsUpdated(() -> {
+            if (calendarGrid != null) {
+                System.out.println("🔄 UI Refresh Triggered (New Events Found)");
+                calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
+            }
+        });
     }
 
     // DEĞİŞİKLİK 3: Orta alanı (Takvimi) oluşturan metot eklendi

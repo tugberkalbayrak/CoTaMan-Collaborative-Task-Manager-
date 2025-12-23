@@ -229,6 +229,7 @@ public class SRSScraper {
                 event.setStartTime(times[0]);
                 event.setEndTime(times[1]);
                 examEvents.add(event);
+                System.out.println("Scraped SRS Exam: " + event.getTitle() + " " + event.getStartTime());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -267,6 +268,7 @@ public class SRSScraper {
             LocalDateTime end = start.withHour(Integer.parseInt(endParts[0])).withMinute(Integer.parseInt(endParts[1]));
             return new LocalDateTime[] { start, end };
         } catch (Exception e) {
+            System.err.println("SRS Exam Time Parse Error: '" + rawString + "' -> " + e.getMessage());
             return null;
         }
     }

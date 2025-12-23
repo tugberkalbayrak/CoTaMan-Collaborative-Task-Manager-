@@ -37,6 +37,8 @@ public class MainApp extends Application {
             String email = registerView.getEmail();
             String pass = registerView.getPassword();
             String rePass = registerView.getRePassword();
+            String moodleId = registerView.getMoodleUsername();
+            String moodlePass = registerView.getMoodlePassword();
 
             if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 System.out.println("UYARI: Lütfen tüm alanları doldurun!");
@@ -49,7 +51,8 @@ public class MainApp extends Application {
             }
 
             System.out.println("Kayıt işlemi başlatılıyor: " + email);
-            boolean success = SessionManager.getInstance().register(name + " " + surname, email, pass);
+            boolean success = SessionManager.getInstance().register(name + " " + surname, email, pass, moodleId,
+                    moodlePass);
 
             if (success) {
                 System.out.println("✅ KAYIT BAŞARILI! Giriş ekranına yönlendiriliyorsunuz.");

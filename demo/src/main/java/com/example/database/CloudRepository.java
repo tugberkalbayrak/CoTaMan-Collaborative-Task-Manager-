@@ -83,6 +83,10 @@ public class CloudRepository {
             doc.append("email", user.getEmail());
             doc.append("password", user.getPassword());
             doc.append("bilkentId", user.getBilkentId());
+            // --- MOODLE CREDENTIALS ---
+            doc.append("moodleUsername", user.getMoodleUsername());
+            doc.append("moodlePassword", user.getMoodlePassword());
+            // --------------------------
             doc.append("schedule", new ArrayList<>());
             doc.append("enrolledGroups", new ArrayList<>());
             doc.append("friends", new ArrayList<>());
