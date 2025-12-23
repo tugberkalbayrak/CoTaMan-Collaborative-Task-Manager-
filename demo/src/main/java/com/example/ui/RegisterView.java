@@ -23,6 +23,8 @@ public class RegisterView extends VBox {
     private CoTaTextField emailField;
     private CoTaPasswordField passField;
     private CoTaPasswordField rePassField;
+    private CoTaTextField moodleUserField;
+    private CoTaPasswordField moodlePassField;
 
     public RegisterView() {
         this.setAlignment(Pos.CENTER);
@@ -60,6 +62,9 @@ public class RegisterView extends VBox {
         passField = new CoTaPasswordField("Password");
         rePassField = new CoTaPasswordField("Password Again");
 
+        moodleUserField = new CoTaTextField("Moodle Username");
+        moodlePassField = new CoTaPasswordField("Moodle Password");
+
         CoTaButton registerBtn = new CoTaButton("Register", CoTaButton.StyleType.SECONDARY);
         registerBtn.setMaxWidth(Double.MAX_VALUE);
 
@@ -76,6 +81,8 @@ public class RegisterView extends VBox {
                 emailField,
                 passField,
                 rePassField,
+                moodleUserField,
+                moodlePassField,
                 registerBtn);
 
         Label hasAccountLabel = new Label("Already have an account?");
@@ -119,6 +126,14 @@ public class RegisterView extends VBox {
 
     public String getRePassword() {
         return rePassField.getText();
+    }
+
+    public String getMoodleUsername() {
+        return moodleUserField.getText();
+    }
+
+    public String getMoodlePassword() {
+        return moodlePassField.getText();
     }
 
     // --- SETTER METOTLARI ---

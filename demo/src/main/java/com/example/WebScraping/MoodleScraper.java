@@ -159,8 +159,12 @@ public class MoodleScraper {
                 event.setImportance(Importance.MUST); // Assignments are critical!
 
                 System.out.println("   (Debug) Raw Moodle Date: " + dateText); // Let's see what we got
-                event.setStartTime(parseMoodleDate(dateText));
-                event.setEndTime(event.getStartTime().plusHours(1)); // Default 1 hour duration
+
+                // DEĞİŞİKLİK: Kullanıcı isteği üzerine, çekilen tarih BİTİŞ saati (Deadline)
+                // olarak ayarlandı.
+                LocalDateTime deadline = parseMoodleDate(dateText);
+                event.setEndTime(deadline);
+                event.setStartTime(deadline.minusHours(1)); // Başlangıç varsayılan olarak 1 saat önce
 
                 moodleEvents.add(event);
                 System.out.println("Scraped Assignment: " + event.getTitle() + " Due: " + event.getStartTime());

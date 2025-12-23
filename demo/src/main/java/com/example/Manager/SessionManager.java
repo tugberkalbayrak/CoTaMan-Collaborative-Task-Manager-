@@ -120,7 +120,7 @@ public class SessionManager {
         }
     }
 
-    public boolean register(String name, String email, String password) {
+    public boolean register(String name, String email, String password, String moodleUser, String moodlePass) {
         if (repository.getUserByEmail(email) != null)
             return false;
 
@@ -128,6 +128,8 @@ public class SessionManager {
         newUser.setFullName(name);
         newUser.setEmail(email);
         newUser.setPassword(password);
+        newUser.setMoodleUsername(moodleUser);
+        newUser.setMoodlePassword(moodlePass);
 
         repository.saveUser(newUser);
         return true;

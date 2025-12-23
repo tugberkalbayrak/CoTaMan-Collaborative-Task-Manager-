@@ -10,6 +10,11 @@ import com.example.ui.RegisterView;
 import com.example.ui.MainView;
 import com.example.ui.ArchiveView;
 
+import com.example.WebScraping.MoodleScraper;
+import com.example.Entity.CalendarEvent;
+import javafx.application.Platform;
+import java.util.List;
+
 public class MainApp extends Application {
 
     private StackPane root;
@@ -48,8 +53,13 @@ public class MainApp extends Application {
                 return;
             }
 
+            String moodleUser = registerView.getMoodleUsername();
+            String moodlePass = registerView.getMoodlePassword();
+
             System.out.println("Kayıt işlemi başlatılıyor: " + email);
-            boolean success = SessionManager.getInstance().register(name + " " + surname, email, pass);
+            // Moodle credentials included in registration
+            boolean success = SessionManager.getInstance().register(name + " " + surname, email, pass, moodleUser,
+                    moodlePass);
 
             if (success) {
                 System.out.println("✅ KAYIT BAŞARILI! Giriş ekranına yönlendiriliyorsunuz.");
@@ -72,6 +82,36 @@ public class MainApp extends Application {
 
                 // Giriş başarılı olunca Ana Ekranları oluştur
                 initializeLoggedInViews();
+
+                // MOODLE ENTEGRASYONU: Giriş yapınca otomatik veri çek
+                // Arka planda çalışsın ki arayüz donmasın
+                new Thread(() -> {
+                    com.example.Entity.User currentUser = SessionManager.getInstance().getCurrentUser();
+                    if (currentUser != null && currentUser.getMoodleUsername() != null
+                            && !currentUser.getMoodleUsername().isEmpty()) {
+                        System.out.println("Moodle verileri çekiliyor...");
+
+                        MoodleScraper scraper = new MoodleScraper();
+                        if (scraper.connect(currentUser.getMoodleUsername(), currentUser.getMoodlePassword())) {
+                            List<CalendarEvent> events = scraper.fetchEvents();
+                            System.out.println("Moodle'dan " + events.size() + " etkinlik çekildi.");
+
+                            // Veritabanına kaydet
+                            for (CalendarEvent event : events) {
+                                event.setOwner(currentUser);
+                                SessionManager.getInstance().getRepository().saveEvent(event);
+                            }
+
+                            // Arayüzü güncelle (JavaFX Thread'inde)
+                            Platform.runLater(() -> {
+                                if (mainView != null && mainView.getCalendarGrid() != null) {
+                                    mainView.getCalendarGrid().loadEvents(SessionManager.getInstance().getUserEvents());
+                                    System.out.println("Takvim güncellendi!");
+                                }
+                            });
+                        }
+                    }
+                }).start();
 
                 // Ana Ekrana Geç
                 showScreen(mainView);

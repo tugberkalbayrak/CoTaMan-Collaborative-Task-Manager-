@@ -23,6 +23,12 @@ public class User {
     @BsonProperty("bilkentId")
     private String bilkentId;
 
+    @BsonProperty("moodleUsername")
+    private String moodleUsername;
+
+    @BsonProperty("moodlePassword")
+    private String moodlePassword;
+
     @BsonProperty("schedule")
     private List<CalendarEvent> schedule = new ArrayList<>();
 
@@ -84,6 +90,22 @@ public class User {
 
     public void setBilkentId(String bilkentId) {
         this.bilkentId = bilkentId;
+    }
+
+    public String getMoodleUsername() {
+        return moodleUsername;
+    }
+
+    public void setMoodleUsername(String moodleUsername) {
+        this.moodleUsername = moodleUsername;
+    }
+
+    public String getMoodlePassword() {
+        return moodlePassword;
+    }
+
+    public void setMoodlePassword(String moodlePassword) {
+        this.moodlePassword = moodlePassword;
     }
 
     public List<CalendarEvent> getSchedule() {
