@@ -24,6 +24,8 @@ public class NavBar extends HBox {
     private Runnable onHomeClick;
     private Runnable onArchiveClick;
     private Runnable onSyncClick; // EKLENDİ
+    private Runnable onSettingsClick;
+    private Runnable onNotificationsClick;
     private Runnable onFriendsClick;
 
     public NavBar() {
@@ -64,7 +66,16 @@ public class NavBar extends HBox {
 
         Button searchBtn = createIconButton(ICON_SEARCH);
         Button settingsBtn = createIconButton(ICON_SETTINGS);
+        settingsBtn.setOnAction(e -> {
+            if (onSettingsClick != null)
+                onSettingsClick.run();
+        });
+
         Button notifBtn = createIconButton(ICON_BELL);
+        notifBtn.setOnAction(e -> {
+            if (onNotificationsClick != null)
+                onNotificationsClick.run();
+        });
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -91,6 +102,14 @@ public class NavBar extends HBox {
     public void setOnSyncClick(Runnable action) {
         this.onSyncClick = action;
     } // EKLENDİ
+
+    public void setOnSettingsClick(Runnable action) {
+        this.onSettingsClick = action;
+    }
+
+    public void setOnNotificationsClick(Runnable action) {
+        this.onNotificationsClick = action;
+    }
 
     public void setOnFriendsClick(Runnable action) {
         this.onFriendsClick = action;

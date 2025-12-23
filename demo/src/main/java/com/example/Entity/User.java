@@ -32,6 +32,9 @@ public class User {
     @BsonProperty("friends")
     private List<ObjectId> friends;
 
+    @BsonProperty("profilePhotoPath")
+    private String profilePhotoPath;
+
     public User() {
     }
 
@@ -111,5 +114,13 @@ public class User {
 
     public void setFriends(List<ObjectId> friends) {
         this.friends = friends;
+    }
+
+    public String getProfilePhotoPath() {
+        return profilePhotoPath;
+    }
+
+    public void setProfilePhotoPath(String profilePhotoPath) {
+        this.profilePhotoPath = profilePhotoPath;
     }
 }

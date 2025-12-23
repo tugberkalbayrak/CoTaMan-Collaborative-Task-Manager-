@@ -8,17 +8,19 @@ import java.util.List;
 import com.example.Entity.*;
 
 public class IntelligentMeetingSchedular {
-  
-  public List<TimeSlot> findCommonSlots(Group group, Duration meetingDuration, LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+
+    public List<TimeSlot> findCommonSlots(Group group, Duration meetingDuration, LocalDateTime rangeStart,
+            LocalDateTime rangeEnd) {
         List<User> members = group.getMembers();
         List<TimeSlot> commonSlots = new ArrayList<>();
-        
+
         List<TimeSlot> busySlots = new ArrayList<>();
 
         for (User member : members) {
 
             for (CalendarEvent event : member.getSchedule()) {
                 if (event.getEndTime().isAfter(rangeStart) && event.getStartTime().isBefore(rangeEnd)) {
+
                     if (event.getImportance() == Importance.MUST) {
 
                         busySlots.add(new TimeSlot(event.getStartTime(), event.getEndTime()));
@@ -47,6 +49,7 @@ public class IntelligentMeetingSchedular {
         }
         LocalDateTime pointer = rangeStart;
         for (TimeSlot busy : mergedBusy) {
+
             if (Duration.between(pointer, busy.getStart()).compareTo(meetingDuration) >= 0) {
 
                 commonSlots.add(new TimeSlot(pointer, busy.getStart()));
@@ -61,7 +64,5 @@ public class IntelligentMeetingSchedular {
 
         return commonSlots;
     }
-
-
 
 }
