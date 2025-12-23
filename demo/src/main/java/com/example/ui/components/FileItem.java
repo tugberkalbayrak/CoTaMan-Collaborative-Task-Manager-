@@ -15,24 +15,25 @@ public class FileItem extends HBox {
 
     private static final String ICON_DOWNLOAD = "M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z";
 
+    private Button downloadBtn;
+
     public FileItem(String fileName, String uploadDate, String uploaderName) {
 
         this.setPadding(new Insets(10));
         this.setSpacing(15);
         this.setAlignment(Pos.CENTER_LEFT);
         this.setStyle(
-            "-fx-background-color: " + Theme.PANEL_COLOR1 + ";" +
-            "-fx-background-radius: 10;" +
-            "-fx-border-color: #555;" +
-            "-fx-border-radius: 10;" +
-            "-fx-border-width: 0 0 1 0;"
-        );
+                "-fx-background-color: " + Theme.PANEL_COLOR1 + ";" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-border-color: #555;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-border-width: 0 0 1 0;");
 
         Button fileIcon = createIconButton(ICON_FILE, Theme.SECONDARY_COLOR);
 
         Label nameLbl = new Label(fileName);
         nameLbl.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        
+
         Label detailsLbl = new Label("Uploaded by " + uploaderName + " • " + uploadDate);
         detailsLbl.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-size: 11px;");
 
@@ -41,32 +42,42 @@ public class FileItem extends HBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button downloadBtn = createIconButton(ICON_DOWNLOAD, "#3498DB");
+        downloadBtn = createIconButton(ICON_DOWNLOAD, "#3498DB");
 
         this.getChildren().addAll(fileIcon, infoBox, spacer, downloadBtn);
 
         this.setOnMouseEntered(e -> this.setStyle(
-            "-fx-background-color: #4A4A4A;" + 
-            "-fx-background-radius: 10;" +
-            "-fx-cursor: hand;"
-        ));
+                "-fx-background-color: #4A4A4A;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-cursor: hand;"));
         this.setOnMouseExited(e -> this.setStyle(
-            "-fx-background-color: " + Theme.PANEL_COLOR1 + ";" +
-            "-fx-background-radius: 10;" +
-            "-fx-border-color: #555;" +
-            "-fx-border-radius: 10;" +
-            "-fx-border-width: 0 0 1 0;"
-        ));
+                "-fx-background-color: " + Theme.PANEL_COLOR1 + ";" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-border-color: #555;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-border-width: 0 0 1 0;"));
     }
 
     private Button createIconButton(String svgData, String color) {
         SVGPath path = new SVGPath();
         path.setContent(svgData);
         path.setFill(javafx.scene.paint.Color.web(color));
-        
+
         Button btn = new Button();
         btn.setGraphic(path);
         btn.setStyle("-fx-background-color: transparent;");
         return btn;
+    }
+
+    // --- YENİ EKLENEN METOT ---
+    public void setOnAction(Runnable action) {
+        // Satıra tıklayınca çalışsın
+        this.setOnMouseClicked(e -> action.run());
+
+        // İndirme butonuna tıklayınca da çalışsın
+        downloadBtn.setOnAction(e -> {
+            action.run();
+            e.consume(); // Olayın iki kere tetiklenmesini engeller
+        });
     }
 }

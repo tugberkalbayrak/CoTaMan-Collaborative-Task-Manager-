@@ -119,6 +119,14 @@ public class ArchiveView extends StackPane {
 
                 // FileItem(FileName, Date, Uploader)
                 FileItem item = new FileItem(file.getFileName(), "Recently", uploaderName);
+
+                // --- YENİ EKLENEN KISIM: TIKLAMA İŞLEMİ ---
+                item.setOnAction(() -> {
+                    System.out.println("Dosya açılıyor: " + file.getFileName());
+                    // Repository üzerinden dosyayı aç
+                    SessionManager.getInstance().getRepository().openFile(file);
+                });
+
                 fileListVBox.getChildren().add(item);
             }
         }
