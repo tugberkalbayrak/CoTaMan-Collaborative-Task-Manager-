@@ -16,6 +16,11 @@ public class SearchFilterPopup extends VBox {
     private Runnable onSave;
     private Runnable onClear;
 
+    private CoTaTextField searchField;
+    private ComboBox<String> sortCombo;
+    private ComboBox<String> typeCombo;
+    private ToggleGroup visGroup;
+
     public SearchFilterPopup() {
 
         this.setMaxWidth(300);
@@ -23,15 +28,14 @@ public class SearchFilterPopup extends VBox {
         this.setSpacing(15);
         this.setAlignment(Pos.TOP_LEFT);
         this.setStyle(
-            "-fx-background-color: #D3D3D3;" + 
-            "-fx-background-radius: 20;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);"
-        );
+                "-fx-background-color: #D3D3D3;" +
+                        "-fx-background-radius: 20;" +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        
-        CoTaTextField searchField = new CoTaTextField("Enter the file name");
+
+        searchField = new CoTaTextField("Enter the file name");
         searchField.setStyle("-fx-background-radius: 20; -fx-background-color: white; -fx-text-fill: black;");
         searchField.setPrefWidth(220);
 
@@ -46,16 +50,16 @@ public class SearchFilterPopup extends VBox {
 
         Label sortLabel = new Label("Sort By:");
         sortLabel.setStyle("-fx-font-weight: bold;");
-        
-        ComboBox<String> sortCombo = new ComboBox<>();
+
+        sortCombo = new ComboBox<>();
         sortCombo.getItems().addAll("A-Z", "Date", "Course Code", "Upload Date");
         sortCombo.setValue("A-Z");
         sortCombo.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
 
         Label typeLabel = new Label("Type:");
         typeLabel.setStyle("-fx-font-weight: bold;");
-        
-        ComboBox<String> typeCombo = new ComboBox<>();
+
+        typeCombo = new ComboBox<>();
         typeCombo.getItems().addAll("All", "Notes", "Exam", "Syllabus");
         typeCombo.setValue("All");
         typeCombo.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
@@ -68,11 +72,11 @@ public class SearchFilterPopup extends VBox {
         Label visLabel = new Label("Visibility:");
         visLabel.setStyle("-fx-font-weight: bold; -fx-padding: 10 0 0 0;");
 
-        ToggleGroup visGroup = new ToggleGroup();
+        visGroup = new ToggleGroup();
         RadioButton publicRad = new RadioButton("Public");
         RadioButton groupRad = new RadioButton("Group");
         RadioButton privateRad = new RadioButton("Only Me");
-        
+
         publicRad.setToggleGroup(visGroup);
         groupRad.setToggleGroup(visGroup);
         privateRad.setToggleGroup(visGroup);
@@ -81,8 +85,9 @@ public class SearchFilterPopup extends VBox {
         VBox visBox = new VBox(5, publicRad, groupRad, privateRad);
 
         CoTaButton clearBtn = new CoTaButton("Clear", CoTaButton.StyleType.DANGER);
-        clearBtn.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-background-radius: 15; -fx-border-color: gray; -fx-border-radius: 15;");
-        
+        clearBtn.setStyle(
+                "-fx-background-color: white; -fx-text-fill: black; -fx-background-radius: 15; -fx-border-color: gray; -fx-border-radius: 15;");
+
         CoTaButton saveBtn = new CoTaButton("Save", CoTaButton.StyleType.SECONDARY);
         saveBtn.setPrefWidth(80);
 
@@ -95,16 +100,21 @@ public class SearchFilterPopup extends VBox {
             sortCombo.setValue("A-Z");
             typeCombo.setValue("All");
             publicRad.setSelected(true);
-            if (onClear != null) onClear.run();
+            if (onClear != null)
+                onClear.run();
         });
 
         saveBtn.setOnAction(e -> {
-            if (onSave != null) onSave.run();
+            if (onSave != null)
+                onSave.run();
         });
 
         Label closeX = new Label("X");
         closeX.setStyle("-fx-font-weight: bold; -fx-cursor: hand;");
-        closeX.setOnMouseClicked(e -> { if(onSave != null) onSave.run(); }); 
+        closeX.setOnMouseClicked(e -> {
+            if (onSave != null)
+                onSave.run();
+        });
 
         HBox header = new HBox(searchBox, closeX);
         HBox.setHgrow(searchBox, javafx.scene.layout.Priority.ALWAYS);
@@ -113,6 +123,29 @@ public class SearchFilterPopup extends VBox {
         this.getChildren().addAll(header, grid, visLabel, visBox, btnBox);
     }
 
-    public void setOnSave(Runnable action) { this.onSave = action; }
-    public void setOnClear(Runnable action) { this.onClear = action; }
+    public void setOnSave(Runnable action) {
+        this.onSave = action;
+    }
+
+    public void setOnClear(Runnable action) {
+        this.onClear = action;
+    }
+
+    public String getSearchQuery() {
+        return searchField.getText();
+    }
+
+    public String getSortBy() {
+        return sortCombo.getValue();
+    }
+
+    public String getFilterType() {
+        return typeCombo.getValue();
+    }
+
+    public String getFilterVisibility() {
+        RadioButton selected = (RadioButton) visGroup.getSelectedToggle();
+        return selected != null ? selected.getText() : "Public";
+    }
+
 }

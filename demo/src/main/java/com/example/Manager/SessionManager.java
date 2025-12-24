@@ -445,4 +445,51 @@ public class SessionManager {
         }
         return filtered;
     }
+
+    public List<AcademicFile> searchAndFilterFiles(List<AcademicFile> sourceList, String query, String sortBy,
+            String type, String visibility) {
+        if (sourceList == null)
+            return new ArrayList<>();
+        List<AcademicFile> filtered = new ArrayList<>();
+        String lowerQuery = (query != null) ? query.toLowerCase() : "";
+        for (AcademicFile file : sourceList) {
+
+            boolean matchesQuery = lowerQuery.isEmpty() ||
+                    file.getFileName().toLowerCase().contains(lowerQuery) ||
+                    (file.getCourseCode() != null && file.getCourseCode().toLowerCase().contains(lowerQuery));
+
+            boolean matchesType = (type == null || type.equals("All")) ||
+                    file.getType().toString().equalsIgnoreCase(type.replace(" ", "_"));
+
+            boolean matchesVis = true;
+            if (visibility != null) {
+                if (visibility.contains("Private") && file.getVisibility() != Visibility.PRIVATE)
+                    matchesVis = false;
+                else if (visibility.contains("Group") && file.getVisibility() != Visibility.GROUP)
+                    matchesVis = false;
+                else if (visibility.equals("Public") && file.getVisibility() != Visibility.PUBLIC)
+                    matchesVis = false;
+            }
+            if (matchesQuery && matchesType && matchesVis) {
+                filtered.add(file);
+            }
+        }
+
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "A-Z":
+                    filtered.sort((f1, f2) -> f1.getFileName().compareToIgnoreCase(f2.getFileName()));
+                    break;
+                case "Course Code":
+                    filtered.sort((f1, f2) -> {
+                        String c1 = f1.getCourseCode() == null ? "" : f1.getCourseCode();
+                        String c2 = f2.getCourseCode() == null ? "" : f2.getCourseCode();
+                        return c1.compareToIgnoreCase(c2);
+                    });
+                    break;
+
+            }
+        }
+        return filtered;
+    }
 }
