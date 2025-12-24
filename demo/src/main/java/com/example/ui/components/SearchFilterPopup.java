@@ -69,20 +69,20 @@ public class SearchFilterPopup extends VBox {
         grid.add(typeLabel, 1, 0);
         grid.add(typeCombo, 1, 1);
 
-        Label visLabel = new Label("Visibility:");
-        visLabel.setStyle("-fx-font-weight: bold; -fx-padding: 10 0 0 0;");
+        // Label visLabel = new Label("Visibility:");
+        // visLabel.setStyle("-fx-font-weight: bold; -fx-padding: 10 0 0 0;");
 
-        visGroup = new ToggleGroup();
-        RadioButton publicRad = new RadioButton("Public");
-        RadioButton groupRad = new RadioButton("Group");
-        RadioButton privateRad = new RadioButton("Only Me");
+        // visGroup = new ToggleGroup();
+        // RadioButton publicRad = new RadioButton("Public");
+        // RadioButton groupRad = new RadioButton("Group");
+        // RadioButton privateRad = new RadioButton("Only Me");
 
-        publicRad.setToggleGroup(visGroup);
-        groupRad.setToggleGroup(visGroup);
-        privateRad.setToggleGroup(visGroup);
-        publicRad.setSelected(true);
+        // publicRad.setToggleGroup(visGroup);
+        // groupRad.setToggleGroup(visGroup);
+        // privateRad.setToggleGroup(visGroup);
+        // publicRad.setSelected(true);
 
-        VBox visBox = new VBox(5, publicRad, groupRad, privateRad);
+        // VBox visBox = new VBox(5, publicRad, groupRad, privateRad);
 
         CoTaButton clearBtn = new CoTaButton("Clear", CoTaButton.StyleType.DANGER);
         clearBtn.setStyle(
@@ -99,7 +99,7 @@ public class SearchFilterPopup extends VBox {
             searchField.clear();
             sortCombo.setValue("A-Z");
             typeCombo.setValue("All");
-            publicRad.setSelected(true);
+
             if (onClear != null)
                 onClear.run();
         });
@@ -120,7 +120,7 @@ public class SearchFilterPopup extends VBox {
         HBox.setHgrow(searchBox, javafx.scene.layout.Priority.ALWAYS);
         closeX.setAlignment(Pos.TOP_RIGHT);
 
-        this.getChildren().addAll(header, grid, visLabel, visBox, btnBox);
+        this.getChildren().addAll(header, grid, btnBox);
     }
 
     public void setOnSave(Runnable action) {

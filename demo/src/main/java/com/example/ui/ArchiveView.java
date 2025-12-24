@@ -165,17 +165,13 @@ public class ArchiveView extends StackPane {
 
     private void showSearchPanel() {
         SearchFilterPopup popup = new SearchFilterPopup();
-        if (isPrivateView) {
-            popup.setFilterVisibility("Only Me");
-        } else {
-            popup.setFilterVisibility("Public");
-        }
+
         popup.setOnSave(() -> {
 
             String query = popup.getSearchQuery();
             String sortBy = popup.getSortBy();
             String type = popup.getFilterType();
-            String vis = popup.getFilterVisibility();
+            String vis = null;
 
             List<AcademicFile> rawList;
             if (isPrivateView) {
