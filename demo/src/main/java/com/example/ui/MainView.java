@@ -43,7 +43,7 @@ public class MainView extends StackPane {
 
         navBar.setOnHomeClick(() -> mainLayout.setCenter(createCenterArea()));
 
-navBar.setOnSettingsClick(this::showSettings);
+        navBar.setOnSettingsClick(this::showSettings);
         navBar.setOnNotificationsClick(this::showNotifications);
 
         VBox groupsPanel = createGroupsPanel();
@@ -187,21 +187,7 @@ navBar.setOnSettingsClick(this::showSettings);
                 groupsBox.getChildren().add(createGroupItem(group));
     }
 
-    private Label createGroupItem(Group group) {
-        Label lbl = new Label("● " + group.getGroupName());
-        lbl.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 5;");
-        lbl.setCursor(javafx.scene.Cursor.HAND);
-
-        lbl.setOnMouseClicked(e -> {
-            GroupView groupContent = new GroupView(group);
-
-            mainLayout.setCenter(groupContent);
-        });
-
-        return lbl;
-    }
-
-public void showSRSPopup() {
+    public void showSRSPopup() {
         SRSPopup popup = new SRSPopup();
         popup.setOnCancel(() -> {
             overlayContainer.setVisible(false);
@@ -228,6 +214,28 @@ public void showSRSPopup() {
         overlayContainer.setVisible(true);
     }
 
+    private Label createGroupItem(Group group) {
+        Label lbl = new Label("● " + group.getGroupName());
+        lbl.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 5;");
+        lbl.setCursor(javafx.scene.Cursor.HAND);
+
+        lbl.setOnMouseClicked(e -> {
+            try {
+                com.example.ui.components.NotificationManager.showInfo("Group Access",
+                        "Opening group: " + group.getGroupName());
+
+                GroupView groupContent = new GroupView(group);
+                mainLayout.setCenter(groupContent);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                com.example.ui.components.NotificationManager.showError("Navigation Error",
+                        "Failed to open group: " + ex.getMessage());
+            }
+        });
+
+        return lbl;
+    }
+
     public void showAddEventPopup() {
         AddEventPopup popup = new AddEventPopup();
 
@@ -246,7 +254,7 @@ public void showSRSPopup() {
 
             if (name != null && !name.isEmpty() && dayIndex >= 0 && startTime != null && endTime != null
                     && selectedImp != null) {
-                 
+
                 java.time.LocalDate targetDate = java.time.LocalDate.now()
                         .with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
                         .plusDays(dayIndex);

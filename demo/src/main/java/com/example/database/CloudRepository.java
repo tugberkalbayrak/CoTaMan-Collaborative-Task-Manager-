@@ -34,20 +34,19 @@ public class CloudRepository {
     public CloudRepository() {
         MongoDatabase db = MongoConnectionManager.getInstance().getDatabase();
 
-this.userCollection = db.getCollection("users", User.class);
+        this.userCollection = db.getCollection("users", User.class);
         this.rawUserCollection = db.getCollection("users");
 
-this.groupCollection = db.getCollection("groups", Group.class);
+        this.groupCollection = db.getCollection("groups", Group.class);
         this.rawGroupCollection = db.getCollection("groups");
 
-this.eventCollection = db.getCollection("events", CalendarEvent.class);
-
+        this.eventCollection = db.getCollection("events", CalendarEvent.class);
         this.rawCalendarCollection = db.getCollection("events");
 
         this.fileCollection = db.getCollection("files", AcademicFile.class);
     }
 
-    public void createGroup(Group group) {
+    public boolean createGroup(Group group) {
         try {
             Document doc = new Document();
             doc.append("_id", new ObjectId());
@@ -58,10 +57,10 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
             doc.append("tasks", new ArrayList<>());
 
             rawGroupCollection.insertOne(doc);
-            System.out.println("Group (Manual) created: " + group.getGroupName());
+            return true;
         } catch (Exception e) {
-            System.out.println("Group creation error: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -71,7 +70,7 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
         return groups;
     }
 
-    public void saveUser(User user) {
+    public boolean saveUser(User user) {
         User existing = getUserByEmail(user.getEmail());
         if (existing == null) {
             Document doc = new Document();
@@ -85,9 +84,9 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
             doc.append("friends", new ArrayList<>());
 
             rawUserCollection.insertOne(doc);
-            System.out.println("User (Manual) saved: " + user.getEmail());
+            return true;
         } else {
-            System.out.println("ERROR: This email is already registered!");
+            return false;
         }
     }
 
@@ -140,7 +139,7 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
         return files;
     }
 
-    public void addTaskToGroup(ObjectId groupId, com.example.ui.components.Task task) {
+    public boolean addTaskToGroup(ObjectId groupId, com.example.ui.components.Task task) {
         try {
             Document taskDoc = new Document()
                     .append("name", task.getName())
@@ -152,10 +151,10 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
             rawGroupCollection.updateOne(
                     Filters.eq("_id", groupId),
                     new Document("$push", new Document("tasks", taskDoc)));
-            System.out.println("Task added to database: " + task.getName());
+            return true;
         } catch (Exception e) {
-            System.out.println("Task addition error: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -273,11 +272,8 @@ this.eventCollection = db.getCollection("events", CalendarEvent.class);
     public boolean deleteEvent(org.bson.types.ObjectId eventId) {
         try {
             rawCalendarCollection.deleteOne(com.mongodb.client.model.Filters.eq("_id", eventId));
-            System.out.println("Event deleted: " + eventId);
             return true;
         } catch (Exception e) {
-            System.out.println("Event deletion error: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
     }

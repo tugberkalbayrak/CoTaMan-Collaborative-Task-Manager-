@@ -25,6 +25,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        com.example.ui.components.NotificationManager.setPrimaryStage(primaryStage);
         root = new StackPane();
 
         loginView = new LoginView();
@@ -41,28 +42,30 @@ public class MainApp extends Application {
             String rePass = registerView.getRePassword();
 
             if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-                System.out.println("WARNING: Please fill in all fields!");
+                com.example.ui.components.NotificationManager.showError("Warning", "Please fill in all fields!");
                 return;
             }
 
             if (!pass.equals(rePass)) {
-                System.out.println("WARNING: Passwords do not match!");
+                com.example.ui.components.NotificationManager.showError("Warning", "Passwords do not match!");
                 return;
             }
 
             String moodleUser = registerView.getMoodleUsername();
             String moodlePass = registerView.getMoodlePassword();
 
-            System.out.println("Registration starting: " + email);
+            com.example.ui.components.NotificationManager.showInfo("Registration", "Registration starting: " + email);
 
             boolean success = SessionManager.getInstance().register(name + " " + surname, email, pass, moodleUser,
                     moodlePass);
 
             if (success) {
-                System.out.println("REGISTRATION SUCCESSFUL! Redirecting to login screen.");
+                com.example.ui.components.NotificationManager.showSuccess("Success",
+                        "Registration Successful! Redirecting...");
                 showScreen(loginView);
             } else {
-                System.out.println("REGISTRATION FAILED! Email might already be in use.");
+                com.example.ui.components.NotificationManager.showError("Registration Failed",
+                        "Email might already be in use.");
             }
         });
 
@@ -70,11 +73,12 @@ public class MainApp extends Application {
             String email = loginView.getEmail();
             String pass = loginView.getPassword();
 
-            System.out.println("Attempting login...");
+            com.example.ui.components.NotificationManager.showInfo("Login", "Attempting login...");
             boolean success = SessionManager.getInstance().login(email, pass);
 
             if (success) {
-                System.out.println("LOGIN SUCCESSFUL! Loading main page...");
+                com.example.ui.components.NotificationManager.showSuccess("Welcome Back",
+                        "Login Successful! Loading main page...");
 
                 initializeLoggedInViews();
 
@@ -82,12 +86,13 @@ public class MainApp extends Application {
                     com.example.Entity.User currentUser = SessionManager.getInstance().getCurrentUser();
                     if (currentUser != null && currentUser.getMoodleUsername() != null
                             && !currentUser.getMoodleUsername().isEmpty()) {
-                        System.out.println("Fetching Moodle data...");
+                        com.example.ui.components.NotificationManager.showInfo("Moodle", "Fetching Moodle data...");
 
                         MoodleScraper scraper = new MoodleScraper();
                         if (scraper.connect(currentUser.getMoodleUsername(), currentUser.getMoodlePassword())) {
                             List<CalendarEvent> events = scraper.fetchEvents();
-                            System.out.println(events.size() + " events fetched from Moodle.");
+                            com.example.ui.components.NotificationManager.showSuccess("Moodle Sync",
+                                    events.size() + " events fetched from Moodle.");
 
                             for (CalendarEvent event : events) {
                                 event.setOwner(currentUser);
@@ -97,7 +102,8 @@ public class MainApp extends Application {
                             Platform.runLater(() -> {
                                 if (mainView != null && mainView.getCalendarGrid() != null) {
                                     mainView.getCalendarGrid().loadEvents(SessionManager.getInstance().getUserEvents());
-                                    System.out.println("Calendar updated!");
+                                    com.example.ui.components.NotificationManager.showSuccess("Calendar",
+                                            "Calendar updated!");
                                 }
                             });
                         }
@@ -110,7 +116,7 @@ public class MainApp extends Application {
                 primaryStage.setHeight(800);
                 primaryStage.centerOnScreen();
             } else {
-                System.out.println("LOGIN FAILED! Incorrect email or password.");
+                com.example.ui.components.NotificationManager.showError("Login Failed", "Incorrect email or password.");
             }
         });
 

@@ -60,7 +60,13 @@ public class SessionManager {
             group.setTasks(new ArrayList<>());
         group.getTasks().add(newTask);
 
-        repository.addTaskToGroup(group.getId(), newTask);
+        boolean success = repository.addTaskToGroup(group.getId(), newTask);
+        if (success) {
+            com.example.ui.components.NotificationManager.showSuccess("Task Added",
+                    "Task '" + taskName + "' added to group.");
+        } else {
+            com.example.ui.components.NotificationManager.showError("Error", "Failed to add task to database.");
+        }
     }
 
     public void createGroup(String n, String c) {
@@ -68,7 +74,13 @@ public class SessionManager {
             return;
         Group g = new Group(n, c);
         g.getMemberIds().add(currentUser.getId());
-        repository.createGroup(g);
+        boolean success = repository.createGroup(g);
+        if (success) {
+            com.example.ui.components.NotificationManager.showSuccess("Group Created",
+                    "Group '" + n + "' created successfully.");
+        } else {
+            com.example.ui.components.NotificationManager.showError("Error", "Failed to create group.");
+        }
     }
 
     public List<Group> getUserGroups() {
@@ -94,20 +106,19 @@ public class SessionManager {
     }
 
     public boolean login(String email, String password) {
-        System.out.println("--- LOGIN PROCESS ---");
+        com.example.ui.components.NotificationManager.showInfo("Login Process", "Processing login...");
         User user = repository.getUserByEmail(email);
 
         if (user == null) {
-            System.out.println("ERROR: User not found.");
+            com.example.ui.components.NotificationManager.showError("Login Error", "User not found.");
             return false;
         }
 
         if (user.getPassword() != null && user.getPassword().equals(password)) {
             this.currentUser = user;
-            System.out.println("Login Successful: " + user.getFullName());
             return true;
         } else {
-            System.out.println("ERROR: Incorrect password.");
+            com.example.ui.components.NotificationManager.showError("Login Error", "Incorrect password.");
             return false;
         }
     }
@@ -228,6 +239,8 @@ public class SessionManager {
         FileType fileType = (t != null && t.equals("Syllabus")) ? FileType.SYLLABUS : FileType.LECTURE_NOTE;
 
         repository.saveFileMetadata(new AcademicFile(n, filePath, currentUser, fileType, visibility, c));
+        com.example.ui.components.NotificationManager.showSuccess("File Uploaded",
+                "File '" + n + "' uploaded successfully.");
     }
 
     public User getCurrentUser() {
@@ -266,7 +279,7 @@ public class SessionManager {
         if (group == null || timeString == null)
             return;
 
-        System.out.println("Scheduling Meeting: " + timeString);
+        com.example.ui.components.NotificationManager.showInfo("Scheduling", "Scheduling meeting for: " + timeString);
 
         try {
             String[] parts = timeString.split(" - ");
@@ -292,10 +305,11 @@ public class SessionManager {
                     repository.saveEvent(meeting);
                 }
             }
-            System.out.println("Meeting (" + startStr + "-" + endStr + ") scheduled for the entire group!");
+            com.example.ui.components.NotificationManager.showSuccess("Meeting Scheduled",
+                    "Meeting (" + startStr + "-" + endStr + ") scheduled for group!");
 
         } catch (Exception e) {
-            System.out.println("Date format error: " + e.getMessage());
+            com.example.ui.components.NotificationManager.showError("Date Error", "Format error: " + e.getMessage());
         }
     }
 
@@ -316,8 +330,11 @@ public class SessionManager {
         boolean success = repository.addFriend(currentUser.getId(), friend.getId());
         if (success) {
             currentUser.getFriends().add(friend.getId());
+            com.example.ui.components.NotificationManager.showSuccess("Friend Added",
+                    friend.getFullName() + " added as friend.");
             return "Success! " + friend.getFullName() + " added as friend.";
         }
+        com.example.ui.components.NotificationManager.showError("Error", "Failed to add friend.");
         return "An error occurred.";
     }
 
@@ -350,8 +367,11 @@ public class SessionManager {
             if (group.getMembers() != null)
                 group.getMembers().add(friend);
 
+            com.example.ui.components.NotificationManager.showSuccess("Member Added",
+                    friend.getFullName() + " added to group.");
             return "Success! " + friend.getFullName() + " added.";
         } else {
+            com.example.ui.components.NotificationManager.showError("Error", "Failed to add member.");
             return "Database error occurred.";
         }
     }
@@ -373,10 +393,11 @@ public class SessionManager {
         boolean success = repository.updateTaskStatus(group.getId(), taskName, newStatus, newColor);
 
         if (success) {
-            System.out.println("Task updated: " + taskName + " -> " + newStatus);
+            com.example.ui.components.NotificationManager.showSuccess("Task Updated",
+                    "Task updated: " + taskName + " -> " + newStatus);
 
         } else {
-            System.out.println("Task could not be updated!");
+            com.example.ui.components.NotificationManager.showError("Update Failed", "Task could not be updated!");
         }
     }
 
@@ -388,13 +409,21 @@ public class SessionManager {
 
         if (success && group.getTasks() != null) {
             group.getTasks().remove(task);
+            com.example.ui.components.NotificationManager.showSuccess("Task Deleted",
+                    "Task '" + task.getName() + "' deleted.");
+        } else {
+            com.example.ui.components.NotificationManager.showError("Error", "Failed to delete task.");
         }
     }
 
     public void deleteEvent(CalendarEvent event) {
         if (event == null || event.getEventId() == null)
             return;
-        repository.deleteEvent(event.getEventId());
+        if (repository.deleteEvent(event.getEventId())) {
+            com.example.ui.components.NotificationManager.showSuccess("Event Deleted", "Event deleted successfully.");
+        } else {
+            com.example.ui.components.NotificationManager.showError("Error", "Failed to delete event.");
+        }
     }
 
     public List<AcademicFile> searchFiles(List<AcademicFile> sourceList, String query) {

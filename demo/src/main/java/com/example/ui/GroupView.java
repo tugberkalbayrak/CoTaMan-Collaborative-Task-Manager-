@@ -40,16 +40,16 @@ public class GroupView extends StackPane {
         HBox contentBox = new HBox(20);
         contentBox.setPadding(new Insets(20));
 
-VBox leftColumn = createLeftColumn();
+        VBox leftColumn = createLeftColumn();
         HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
-VBox rightColumn = createRightColumn();
+        VBox rightColumn = createRightColumn();
         rightColumn.setPrefWidth(300);
         rightColumn.setMinWidth(300);
 
         contentBox.getChildren().addAll(leftColumn, rightColumn);
 
-overlayContainer = new StackPane();
+        overlayContainer = new StackPane();
         overlayContainer.setVisible(false);
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
 
@@ -121,7 +121,7 @@ overlayContainer = new StackPane();
             return row;
         });
 
-TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
+        TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
         colTask.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Task, String> colOwner = new TableColumn<>("Assigned To");
@@ -172,8 +172,6 @@ TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
         Label uploadLink = new Label("↑ Upload File");
         uploadLink.setStyle("-fx-text-fill: " + Theme.PRIMARY_COLOR
                 + "; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 12px;");
-        fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
-
         fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
 
         VBox memberSection = new VBox(10);
