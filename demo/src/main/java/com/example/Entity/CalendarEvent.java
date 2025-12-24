@@ -4,9 +4,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.bson.codecs.pojo.annotations.BsonIgnore;
+import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 public class CalendarEvent implements Comparable<CalendarEvent> {
+    @BsonId
     private ObjectId eventId;
     private User owner;
     private String title;
@@ -15,12 +17,12 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
     private Importance importance;
     private String location;
 
-private String description;
+    private String description;
 
-public CalendarEvent() {
+    public CalendarEvent() {
     }
 
-public CalendarEvent(User owner, String title, String location, LocalDateTime start, LocalDateTime end,
+    public CalendarEvent(User owner, String title, String location, LocalDateTime start, LocalDateTime end,
             Importance imp) {
         this.owner = owner;
         this.title = title;
@@ -28,10 +30,10 @@ public CalendarEvent(User owner, String title, String location, LocalDateTime st
         this.startTime = start;
         this.endTime = end;
         this.importance = imp;
-        this.description = "";  
+        this.description = "";
     }
 
-public CalendarEvent(User owner, String title, String location, String description, LocalDateTime start,
+    public CalendarEvent(User owner, String title, String location, String description, LocalDateTime start,
             LocalDateTime end, Importance imp) {
         this.owner = owner;
         this.title = title;
@@ -98,10 +100,10 @@ public CalendarEvent(User owner, String title, String location, String descripti
         this.location = location;
     }
 
-public String getDescription() {
-         
+    public String getDescription() {
+
         if (description == null) {
-             
+
             if (location != null && !location.isEmpty()) {
                 return "Location: " + location;
             }
@@ -114,13 +116,13 @@ public String getDescription() {
         this.description = description;
     }
 
-public boolean overlaps(CalendarEvent other) {
+    public boolean overlaps(CalendarEvent other) {
         return (this.startTime.isBefore(other.endTime) && other.startTime.isBefore(this.endTime));
     }
 
     @Override
     public int compareTo(CalendarEvent other) {
-         
+
         int priorityComparison = Integer.compare(other.importance.getWeight(), this.importance.getWeight());
         if (priorityComparison != 0)
             return priorityComparison;

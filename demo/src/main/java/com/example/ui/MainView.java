@@ -301,7 +301,7 @@ public class MainView extends StackPane {
         overlayContainer.setVisible(true);
     }
 
-    private void showSettings() {
+    public void showSettings() {
         mainLayout.setCenter(new SettingsView());
     }
 

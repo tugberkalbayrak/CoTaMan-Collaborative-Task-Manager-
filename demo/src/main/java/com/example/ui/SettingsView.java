@@ -19,6 +19,7 @@ import java.io.File;
 
 public class SettingsView extends VBox {
 
+  private javafx.scene.control.ComboBox<Theme.ThemeType> themeComboBox;
   private TextField nameField;
   private TextField emailField;
   private TextField bilkentIdField;
@@ -46,21 +47,21 @@ public class SettingsView extends VBox {
     form.setMaxWidth(400);
     form.setAlignment(Pos.CENTER);
 
-profileImageView = new ImageView();
+    profileImageView = new ImageView();
     profileImageView.setFitWidth(100);
     profileImageView.setFitHeight(100);
-    profileImageView.setPreserveRatio(false);  
+    profileImageView.setPreserveRatio(false);
 
-Circle clip = new Circle(50, 50, 50);
+    Circle clip = new Circle(50, 50, 50);
     profileImageView.setClip(clip);
 
-updateProfileImage(user.getProfilePhotoPath());
+    updateProfileImage(user.getProfilePhotoPath());
 
     nameField = createStyledTextField("Full Name", user.getFullName());
     emailField = createStyledTextField("Email", user.getEmail());
     bilkentIdField = createStyledTextField("Bilkent ID", user.getBilkentId());
 
-Label photoLabel = new Label("Profile Photo Path");
+    Label photoLabel = new Label("Profile Photo Path");
     photoLabel.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 12px;");
 
     HBox photoBox = new HBox(10);
@@ -76,7 +77,7 @@ Label photoLabel = new Label("Profile Photo Path");
           new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
       File selectedFile = fileChooser.showOpenDialog(this.getScene().getWindow());
       if (selectedFile != null) {
-        String path = selectedFile.toURI().toString();  
+        String path = selectedFile.toURI().toString();
         photoPathField.setText(path);
         updateProfileImage(path);
       }
@@ -84,14 +85,26 @@ Label photoLabel = new Label("Profile Photo Path");
 
     photoBox.getChildren().addAll(photoPathField, browseBtn);
 
+    // Theme Selector
+    Label themeLabel = new Label("Application Theme");
+    themeLabel.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 12px;");
+
+    themeComboBox = new javafx.scene.control.ComboBox<>();
+    themeComboBox.getItems().addAll(Theme.ThemeType.values());
+    themeComboBox.setValue(Theme.ThemeType.DARK); // Default
+    themeComboBox.setMaxWidth(400);
+    themeComboBox.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-text-fill: white;");
+
     CoTaButton saveBtn = new CoTaButton("Save Changes", CoTaButton.StyleType.PRIMARY);
     saveBtn.setOnAction(e -> saveChanges());
 
     statusLabel = new Label();
     statusLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-size: 14px;");
 
-    form.getChildren().addAll(profileImageView, nameField, emailField, bilkentIdField, photoLabel, photoBox, saveBtn,
-        statusLabel);
+    form.getChildren().addAll(profileImageView, nameField, emailField, bilkentIdField,
+        photoLabel, photoBox,
+        themeLabel, themeComboBox,
+        saveBtn, statusLabel);
 
     this.getChildren().addAll(header, form);
   }
@@ -107,11 +120,11 @@ Label photoLabel = new Label("Profile Photo Path");
   private void updateProfileImage(String path) {
     if (path != null && !path.isEmpty()) {
       try {
-         
+
         if (!path.startsWith("file:") && !path.startsWith("http")) {
           path = new File(path).toURI().toString();
         }
-        Image image = new Image(path, 100, 100, false, false);  
+        Image image = new Image(path, 100, 100, false, false);
         if (!image.isError()) {
           profileImageView.setImage(image);
         }
@@ -127,11 +140,19 @@ Label photoLabel = new Label("Profile Photo Path");
       user.setFullName(nameField.getText());
       user.setEmail(emailField.getText());
       user.setBilkentId(bilkentIdField.getText());
-       
+
       user.setProfilePhotoPath(photoPathField.getText());
 
       SessionManager.getInstance().getRepository().updateUser(user);
-      statusLabel.setText("Changes saved successfully!");
+
+      // Apply Theme
+      Theme.ThemeType selectedTheme = themeComboBox.getValue();
+      if (selectedTheme != null) {
+        Theme.applyTheme(selectedTheme);
+        com.example.MainApp.getInstance().reloadUI();
+      } else {
+        statusLabel.setText("Changes saved successfully!");
+      }
     }
   }
 }

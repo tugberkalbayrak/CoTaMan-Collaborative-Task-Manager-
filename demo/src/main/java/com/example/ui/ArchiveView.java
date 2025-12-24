@@ -234,7 +234,7 @@ public class ArchiveView extends StackPane {
         publicItem.getChildren().add(csFolder);
 
         TreeItem<String> mathFolder = new TreeItem<>("MATH");
-        mathFolder.getChildren().add(new TreeItem<>("MATH101"));
+        mathFolder.getChildren().add(new TreeItem<>("MATH102"));
         publicItem.getChildren().add(mathFolder);
         root.getChildren().addAll(privateItem, publicItem);
         TreeView<String> treeView = new TreeView<>(root);

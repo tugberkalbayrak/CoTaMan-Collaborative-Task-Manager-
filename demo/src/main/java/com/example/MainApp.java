@@ -17,14 +17,20 @@ import java.util.List;
 
 public class MainApp extends Application {
 
+    private static MainApp instance;
     private StackPane root;
     private LoginView loginView;
     private RegisterView registerView;
     private MainView mainView;
     private ArchiveView archiveView;
 
+    public static MainApp getInstance() {
+        return instance;
+    }
+
     @Override
     public void start(Stage primaryStage) {
+        instance = this;
         com.example.ui.components.NotificationManager.setPrimaryStage(primaryStage);
         root = new StackPane();
 
@@ -136,6 +142,23 @@ public class MainApp extends Application {
         mainView.getNavBar().setOnArchiveClick(() -> showScreen(archiveView));
 
         archiveView.getNavBar().setOnHomeClick(() -> showScreen(mainView));
+    }
+
+    public void reloadUI() {
+        Platform.runLater(() -> {
+
+            if (SessionManager.getInstance().getCurrentUser() != null) {
+                initializeLoggedInViews();
+
+                showScreen(mainView);
+
+            } else {
+
+                loginView = new LoginView();
+                registerView = new RegisterView();
+                showScreen(loginView);
+            }
+        });
     }
 
     private void showScreen(javafx.scene.Node screen) {

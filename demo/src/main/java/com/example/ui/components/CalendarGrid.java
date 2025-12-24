@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 
 public class CalendarGrid extends BorderPane {
 
-private static final int START_HOUR = 6;  
-    private static final int END_HOUR = 24;  
-    private static final int HOUR_WIDTH = 100;  
+    private static final int START_HOUR = 6;
+    private static final int END_HOUR = 24;
+    private static final int HOUR_WIDTH = 100;
     private static final double MINUTE_WIDTH = HOUR_WIDTH / 60.0;
-    private static final int ROW_HEIGHT = 80;  
+    private static final int ROW_HEIGHT = 80;
 
     private LocalDate currentWeekStart;
     private List<CalendarEvent> allEvents;
@@ -41,7 +41,7 @@ private static final int START_HOUR = 6;
 
     private java.util.function.Consumer<CalendarEvent> onDeleteRequest;
 
-private List<Pane> dayRows;
+    private List<Pane> dayRows;
 
     public CalendarGrid() {
         this.allEvents = new ArrayList<>();
@@ -54,9 +54,9 @@ private List<Pane> dayRows;
         HBox mainContainer = new HBox(0);
         mainContainer.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
-VBox daysHeader = createDaysHeader();
+        VBox daysHeader = createDaysHeader();
 
-ScrollPane timeScroll = createTimeLineArea();
+        ScrollPane timeScroll = createTimeLineArea();
         HBox.setHgrow(timeScroll, Priority.ALWAYS);
 
         mainContainer.getChildren().addAll(daysHeader, timeScroll);
@@ -65,14 +65,14 @@ ScrollPane timeScroll = createTimeLineArea();
         updateWeekLabel();
     }
 
-private VBox createDaysHeader() {
+    private VBox createDaysHeader() {
         VBox headerBox = new VBox(0);
         headerBox.setMinWidth(100);
         headerBox.setPrefWidth(100);
         headerBox.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
                 + "; -fx-border-color: #34495E; -fx-border-width: 0 1 0 0;");
 
-Region spacer = new Region();
+        Region spacer = new Region();
         spacer.setPrefHeight(30);
         headerBox.getChildren().add(spacer);
 
@@ -86,7 +86,7 @@ Region spacer = new Region();
             VBox dayCell = new VBox(5);
             dayCell.setPrefHeight(ROW_HEIGHT);
             dayCell.setAlignment(Pos.CENTER);
-             
+
             String defaultStyle = "-fx-border-color: #34495E; -fx-border-width: 0 0 1 0; -fx-cursor: hand;";
             dayCell.setStyle(defaultStyle);
 
@@ -98,13 +98,13 @@ Region spacer = new Region();
 
             dayCell.getChildren().addAll(nameLbl, dateLbl);
 
-setupDayHoverPopup(dayCell, date);
+            setupDayHoverPopup(dayCell, date);
 
-dayCell.setOnMouseEntered(e -> {
+            dayCell.setOnMouseEntered(e -> {
                 dayCell.setStyle(
                         "-fx-border-color: #34495E; -fx-border-width: 0 0 1 0; -fx-background-color: #34495E; -fx-cursor: hand;");
 
-});
+            });
             dayCell.setOnMouseExited(e -> {
                 dayCell.setStyle(defaultStyle);
             });
@@ -114,12 +114,12 @@ dayCell.setOnMouseEntered(e -> {
         return headerBox;
     }
 
-private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
+    private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
         Popup popup = new Popup();
 
         VBox panel = new VBox(5);
         panel.setPadding(new Insets(10));
-         
+
         panel.setStyle("-fx-background-color: #2C3E50; -fx-border-color: " + Theme.PRIMARY_COLOR
                 + "; -fx-border-width: 1; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5);");
 
@@ -132,7 +132,7 @@ private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
         boolean hasEvents = false;
 
         if (allEvents != null) {
-             
+
             List<CalendarEvent> daysEvents = allEvents.stream()
                     .filter(e -> e.getStartTime().toLocalDate().equals(date))
                     .sorted(Comparator.comparing(CalendarEvent::getStartTime))
@@ -143,18 +143,18 @@ private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
                 HBox row = new HBox(8);
                 row.setAlignment(Pos.CENTER_LEFT);
 
-String timeStr = event.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+                String timeStr = event.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"));
                 Label timeLbl = new Label(timeStr);
                 timeLbl.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 11px; -fx-font-family: 'Monospaced';");
 
-Region dot = new Region();
+                Region dot = new Region();
                 dot.setPrefSize(8, 8);
                 String color = getEventColor(event.getImportance());
                 dot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 50%;");
 
-Label nameLbl = new Label(event.getTitle());
+                Label nameLbl = new Label(event.getTitle());
                 nameLbl.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-                nameLbl.setMaxWidth(150);  
+                nameLbl.setMaxWidth(150);
 
                 row.getChildren().addAll(timeLbl, dot, nameLbl);
                 eventsList.getChildren().add(row);
@@ -170,7 +170,7 @@ Label nameLbl = new Label(event.getTitle());
         panel.getChildren().addAll(title, eventsList);
         popup.getContent().add(panel);
 
-dayNode.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
+        dayNode.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
             popup.show(dayNode, e.getScreenX() + 15, e.getScreenY());
         });
 
@@ -179,11 +179,11 @@ dayNode.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
         });
     }
 
-private ScrollPane createTimeLineArea() {
+    private ScrollPane createTimeLineArea() {
         VBox contentBox = new VBox(0);
         contentBox.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
-HBox timeHeader = new HBox(0);
+        HBox timeHeader = new HBox(0);
         timeHeader.setPrefHeight(30);
         timeHeader.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
                 + "; -fx-border-color: #34495E; -fx-border-width: 0 0 1 0;");
@@ -206,7 +206,7 @@ HBox timeHeader = new HBox(0);
         }
         contentBox.getChildren().add(timeHeader);
 
-dayRows = new ArrayList<>();
+        dayRows = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             AnchorPane row = new AnchorPane();
             row.setPrefHeight(ROW_HEIGHT);
@@ -289,8 +289,9 @@ dayRows = new ArrayList<>();
 
     private void setupHoverPopup(StackPane eventNode, CalendarEvent event) {
         Popup popup = new Popup();
+        popup.setAutoHide(true); // Close when clicking outside
 
-        VBox panel = new VBox(8);  
+        VBox panel = new VBox(8);
         panel.setPadding(new Insets(10));
         panel.setStyle("-fx-background-color: #2C3E50; -fx-border-color: " + Theme.PRIMARY_COLOR
                 + "; -fx-border-width: 1; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5);");
@@ -307,33 +308,39 @@ dayRows = new ArrayList<>();
         desc.setMaxWidth(250);
         desc.setStyle("-fx-text-fill: white;");
 
-Label deleteBtn = new Label("🗑 Delete Event");
+        Label deleteBtn = new Label("🗑 Delete Event");
         deleteBtn.setStyle(
                 "-fx-text-fill: #E74C3C; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 5 0 0 0; -fx-border-color: #E74C3C; -fx-border-width: 1 0 0 0;");
         deleteBtn.setAlignment(Pos.CENTER_RIGHT);
         deleteBtn.setMaxWidth(Double.MAX_VALUE);
 
         deleteBtn.setOnMouseClicked(e -> {
-            popup.hide();  
+            popup.hide();
             if (onDeleteRequest != null)
-                onDeleteRequest.accept(event);  
+                onDeleteRequest.accept(event);
         });
 
-panel.getChildren().addAll(title, time, desc, deleteBtn);
+        panel.getChildren().addAll(title, time, desc, deleteBtn);
         popup.getContent().add(panel);
 
-eventNode.setOnMouseEntered(e -> {
-            popup.show(eventNode, e.getScreenX() + 10, e.getScreenY() + 10);
-            eventNode.setStyle(eventNode.getStyle() + "-fx-effect: dropshadow(three-pass-box, white, 10, 0, 0, 0);");
+        // Click to open logic
+        eventNode.setOnMouseClicked(e -> {
+            if (!popup.isShowing()) {
+                popup.show(eventNode, e.getScreenX() + 10, e.getScreenY() + 10);
+                eventNode
+                        .setStyle(eventNode.getStyle() + "-fx-effect: dropshadow(three-pass-box, white, 10, 0, 0, 0);");
+            } else {
+                popup.hide();
+            }
         });
 
-        eventNode.setOnMouseExited(e -> {
-
-popup.hide();
+        popup.setOnHidden(e -> {
             String color = getEventColor(event.getImportance());
             eventNode.setStyle("-fx-background-color: " + color
                     + "; -fx-background-radius: 5; -fx-opacity: 0.9; -fx-border-color: white; -fx-border-width: 0 0 0 3;");
         });
+
+        // Removed hover listeners
     }
 
     public void setWeekLabel(Label lbl) {
@@ -356,7 +363,7 @@ popup.hide();
         refresh();
     }
 
-public void addEvent(int dayIndex, int timeIndex, String name, String color) {
+    public void addEvent(int dayIndex, int timeIndex, String name, String color) {
     }
 
     private void updateWeekLabel() {
@@ -373,13 +380,13 @@ public void addEvent(int dayIndex, int timeIndex, String name, String color) {
             return "#95A5A6";
         switch (imp) {
             case MUST:
-                return "#C0392B";  
+                return "#C0392B";
             case OPTIONAL:
-                return "#E67E22";  
+                return "#E67E22";
             case TRIVIA:
-                return "#27AE60";  
+                return "#27AE60";
             default:
-                return "#3498DB";  
+                return "#3498DB";
         }
     }
 
