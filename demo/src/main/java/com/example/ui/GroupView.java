@@ -32,6 +32,7 @@ public class GroupView extends StackPane {
     private StackPane overlayContainer;
 
     private HBox avatarsContainer;
+    private VBox fileListContainer;
 
     public GroupView(Group group) {
         this.currentGroup = group;
@@ -167,12 +168,16 @@ public class GroupView extends StackPane {
                 "-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-background-radius: 15; -fx-padding: 15;");
         Label filesTitle = new Label("Recent Files");
         filesTitle.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
-        VBox fileList = new VBox(5);
-        fileList.getChildren().add(new Label("• Syllabus.pdf"));
+
+        fileListContainer = new VBox(5);
+        refreshFiles();
+
         Label uploadLink = new Label("↑ Upload File");
-        uploadLink.setStyle("-fx-text-fill: " + Theme.PRIMARY_COLOR
-                + "; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 12px;");
-        fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
+        uploadLink.setStyle("-fx-text-fill: #27AE60; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 12px;");
+
+        uploadLink.setOnMouseClicked(e -> showFileUploadPopup());
+
+        fileSection.getChildren().addAll(filesTitle, fileListContainer, uploadLink);
 
         VBox memberSection = new VBox(10);
         memberSection.setStyle(
@@ -186,8 +191,7 @@ public class GroupView extends StackPane {
         HBox.setHgrow(spacerMember, Priority.ALWAYS);
 
         Label addMemberBtn = new Label("+");
-        addMemberBtn.setStyle("-fx-text-fill: " + Theme.PRIMARY_COLOR
-                + "; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;");
+        addMemberBtn.setStyle("-fx-text-fill: #27AE60; -fx-font-size: 24px; -fx-font-weight: bold; -fx-cursor: hand;");
         addMemberBtn.setOnMouseClicked(e -> showAddMemberPopup());
 
         memberHeader.getChildren().addAll(memberTitle, spacerMember, addMemberBtn);
@@ -201,6 +205,54 @@ public class GroupView extends StackPane {
         memberSection.getChildren().addAll(memberHeader, avatarsContainer);
         box.getChildren().addAll(fileSection, memberSection);
         return box;
+    }
+
+    private void showFileUploadPopup() {
+        UploadFilePopup popup = new UploadFilePopup();
+        popup.lockVisibility("Group Only");
+        popup.setOnCancel(() -> {
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
+
+        popup.setOnSave(() -> {
+            if (popup.getSelectedFile() == null) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setContentText("Please select a file!");
+                alert.show();
+                return;
+            }
+            SessionManager.getInstance().uploadFileToGroup(
+                    currentGroup,
+                    popup.getFileName(),
+                    popup.getSelectedFile().getAbsolutePath(),
+                    popup.getFileType(),
+                    popup.getVisibility());
+            refreshFiles();
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+        });
+
+        overlayContainer.getChildren().clear();
+        overlayContainer.getChildren().add(popup);
+        overlayContainer.setVisible(true);
+    }
+
+    private void refreshFiles() {
+        fileListContainer.getChildren().clear();
+        if (currentGroup.getGroupArchive() != null) {
+            for (com.example.Entity.AcademicFile file : currentGroup.getGroupArchive()) {
+                Label fileLbl = new Label("• " + file.getFileName());
+                fileLbl.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 12px; -fx-cursor: hand;");
+
+                // Open file on click
+                fileLbl.setOnMouseClicked(e -> {
+                    SessionManager.getInstance().getRepository().openFile(file);
+                });
+
+                fileListContainer.getChildren().add(fileLbl);
+            }
+        }
     }
 
     private VBox createMeetingSection() {

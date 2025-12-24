@@ -243,6 +243,43 @@ public class SessionManager {
                 "File '" + n + "' uploaded successfully.");
     }
 
+    public void uploadFileToGroup(Group group, String n, String filePath, String t, String v) {
+        if (currentUser == null || group == null)
+            return;
+
+        Visibility visibility = Visibility.GROUP;
+        if (v != null && v.contains("Private")) {
+            visibility = Visibility.PRIVATE;
+        }
+
+        FileType fileType;
+        if (t == null)
+            fileType = FileType.LECTURE_NOTE;
+        else if (t.equals("Syllabus"))
+            fileType = FileType.SYLLABUS;
+        else if (t.equals("Old Exam"))
+            fileType = FileType.PAST_EXAM;
+        else
+            fileType = FileType.LECTURE_NOTE; // Default
+
+        AcademicFile newFile = new AcademicFile(n, filePath, currentUser, fileType, visibility, group.getCourseCode());
+
+        if (group.getGroupArchive() == null) {
+            group.setGroupArchive(new ArrayList<>());
+        }
+        group.getGroupArchive().add(newFile);
+
+        boolean success = repository.addFileToGroup(group.getId(), newFile);
+
+        if (success) {
+            com.example.ui.components.NotificationManager.showSuccess("File Uploaded",
+                    "File '" + n + "' uploaded to group archive.");
+        } else {
+            com.example.ui.components.NotificationManager.showError("Upload Failed",
+                    "Could not save file to database.");
+        }
+    }
+
     public User getCurrentUser() {
         return currentUser;
     }

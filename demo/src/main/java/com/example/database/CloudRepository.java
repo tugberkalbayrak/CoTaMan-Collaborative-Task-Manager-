@@ -158,6 +158,28 @@ public class CloudRepository {
         }
     }
 
+    public boolean addFileToGroup(ObjectId groupId, AcademicFile file) {
+        try {
+            Document fileDoc = new Document()
+                    .append("_id", new ObjectId())
+                    .append("fileName", file.getFileName())
+                    .append("diskPath", file.getDiskPath())
+                    .append("uploader", new Document("_id", file.getUploader().getId())
+                            .append("fullName", file.getUploader().getFullName()))
+                    .append("type", file.getType().toString())
+                    .append("visibility", file.getVisibility().toString())
+                    .append("courseCode", file.getCourseCode());
+
+            rawGroupCollection.updateOne(
+                    Filters.eq("_id", groupId),
+                    new Document("$push", new Document("groupArchive", fileDoc)));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public void openFile(AcademicFile file) {
         if (file == null || file.getDiskPath() == null) {
             System.out.println("ERROR: File or file path is invalid.");
