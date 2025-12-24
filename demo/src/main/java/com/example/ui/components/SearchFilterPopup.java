@@ -148,4 +148,16 @@ public class SearchFilterPopup extends VBox {
         return selected != null ? selected.getText() : "Public";
     }
 
+    public void setFilterVisibility(String visibility) {
+        if (visGroup == null || visibility == null)
+            return;
+        for (javafx.scene.control.Toggle toggle : visGroup.getToggles()) {
+            RadioButton rb = (RadioButton) toggle;
+            if (rb.getText().equals(visibility)) {
+                rb.setSelected(true);
+                break;
+            }
+        }
+    }
+
 }

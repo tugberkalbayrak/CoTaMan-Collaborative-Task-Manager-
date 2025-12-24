@@ -43,7 +43,7 @@ public class NavBar extends HBox {
         archiveBtn.setOnAction(e -> {
             if (onArchiveClick != null)
                 onArchiveClick.run();
-                onArchiveClick.run();
+            onArchiveClick.run();
         });
 
         Button friendsBtn = createIconButton(
@@ -51,7 +51,7 @@ public class NavBar extends HBox {
         friendsBtn.setOnAction(e -> {
             if (onFriendsClick != null)
                 onFriendsClick.run();
-                onFriendsClick.run();
+            onFriendsClick.run();
         });
 
         Button syncBtn = createIconButton(ICON_SYNC);
@@ -62,7 +62,6 @@ public class NavBar extends HBox {
                 onSyncClick.run();
         });
 
-        Button searchBtn = createIconButton(ICON_SEARCH);
         Button settingsBtn = createIconButton(ICON_SETTINGS);
         settingsBtn.setOnAction(e -> {
             if (onSettingsClick != null)
@@ -84,7 +83,7 @@ public class NavBar extends HBox {
 
         this.getChildren().addAll(
                 homeBtn, archiveBtn, syncBtn,
-                searchBtn,
+
                 spacer,
                 settingsBtn, friendsBtn, notifBtn, logoLabel);
     }

@@ -71,10 +71,8 @@ public class ArchiveView extends StackPane {
                 "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z");
         searchTriggerBtn.setOnAction(e -> showSearchPanel());
 
-        Button filterIconBtn = createIconButton("M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z");
-
-        Label searchFolderBtn = new Label("Search This Folder 🔍");
-        searchFolderBtn.setStyle("-fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand;");
+        // Button filterIconBtn = createIconButton("M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3
+        // 7h12v-2H6v2z");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -82,7 +80,7 @@ public class ArchiveView extends StackPane {
         CoTaButton uploadBtn = new CoTaButton("+ Add File", CoTaButton.StyleType.PRIMARY);
         uploadBtn.setOnAction(e -> showUploadPopup());
 
-        topBar.getChildren().addAll(searchTriggerBtn, filterIconBtn, spacer, searchFolderBtn, uploadBtn);
+        topBar.getChildren().addAll(searchTriggerBtn, spacer, uploadBtn);
 
         pathLabel = new Label("Public Archive > All Files");
         pathLabel.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-style: italic;");
@@ -167,6 +165,11 @@ public class ArchiveView extends StackPane {
 
     private void showSearchPanel() {
         SearchFilterPopup popup = new SearchFilterPopup();
+        if (isPrivateView) {
+            popup.setFilterVisibility("Only Me");
+        } else {
+            popup.setFilterVisibility("Public");
+        }
         popup.setOnSave(() -> {
 
             String query = popup.getSearchQuery();

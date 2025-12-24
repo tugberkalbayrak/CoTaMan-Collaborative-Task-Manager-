@@ -458,12 +458,25 @@ public class SessionManager {
                     file.getFileName().toLowerCase().contains(lowerQuery) ||
                     (file.getCourseCode() != null && file.getCourseCode().toLowerCase().contains(lowerQuery));
 
-            boolean matchesType = (type == null || type.equals("All")) ||
-                    file.getType().toString().equalsIgnoreCase(type.replace(" ", "_"));
+            boolean matchesType = false;
+            if (type == null || type.equals("All")) {
+                matchesType = true;
+            } else if (file.getType() != null) {
+                String t = type.toLowerCase();
+                if (t.equals("notes") && file.getType() == FileType.LECTURE_NOTE)
+                    matchesType = true;
+                else if (t.equals("exam") && file.getType() == FileType.PAST_EXAM)
+                    matchesType = true;
+                else if (t.equals("syllabus") && file.getType() == FileType.SYLLABUS)
+                    matchesType = true;
+                else if (file.getType().toString().equalsIgnoreCase(type.replace(" ", "_")))
+                    matchesType = true;
+            }
 
             boolean matchesVis = true;
             if (visibility != null) {
-                if (visibility.contains("Private") && file.getVisibility() != Visibility.PRIVATE)
+                if ((visibility.contains("Private") || visibility.equals("Only Me"))
+                        && file.getVisibility() != Visibility.PRIVATE)
                     matchesVis = false;
                 else if (visibility.contains("Group") && file.getVisibility() != Visibility.GROUP)
                     matchesVis = false;
