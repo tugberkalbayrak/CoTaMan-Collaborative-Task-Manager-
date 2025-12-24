@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -69,15 +69,13 @@ public class FileItem extends HBox {
         return btn;
     }
 
-    // --- YENİ EKLENEN METOT ---
-    public void setOnAction(Runnable action) {
-        // Satıra tıklayınca çalışsın
+public void setOnAction(Runnable action) {
+         
         this.setOnMouseClicked(e -> action.run());
 
-        // İndirme butonuna tıklayınca da çalışsın
-        downloadBtn.setOnAction(e -> {
+downloadBtn.setOnAction(e -> {
             action.run();
-            e.consume(); // Olayın iki kere tetiklenmesini engeller
+            e.consume();  
         });
     }
 }

@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -12,12 +12,10 @@ import com.example.ui.components.Theme;
 
 public class RegisterView extends VBox {
 
-    // Olay Dinleyicileri
-    private Runnable onLoginClick;
+private Runnable onLoginClick;
     private Runnable onRegisterClick;
 
-    // Veri Alanları
-    private CoTaTextField nameField;
+private CoTaTextField nameField;
     private CoTaTextField surnameField;
     private CoTaTextField idField;
     private CoTaTextField emailField;
@@ -49,8 +47,7 @@ public class RegisterView extends VBox {
         titleLabel.setFont(Theme.getHeaderFont());
         titleLabel.setStyle("-fx-text-fill: " + Theme.TEXT_WHITE + ";");
 
-        // Alanları Oluştur
-        nameField = new CoTaTextField("Name");
+nameField = new CoTaTextField("Name");
         surnameField = new CoTaTextField("Surname");
         nameField.setPrefWidth(170);
         surnameField.setPrefWidth(170);
@@ -68,8 +65,7 @@ public class RegisterView extends VBox {
         CoTaButton registerBtn = new CoTaButton("Register", CoTaButton.StyleType.SECONDARY);
         registerBtn.setMaxWidth(Double.MAX_VALUE);
 
-        // Register butonuna tıklama olayı
-        registerBtn.setOnAction(e -> {
+registerBtn.setOnAction(e -> {
             if (onRegisterClick != null)
                 onRegisterClick.run();
         });
@@ -103,8 +99,7 @@ public class RegisterView extends VBox {
         this.getChildren().addAll(appName, registerCard, footerBox);
     }
 
-    // --- GETTER METOTLARI ---
-    public String getName() {
+public String getName() {
         return nameField.getText();
     }
 
@@ -136,8 +131,7 @@ public class RegisterView extends VBox {
         return moodlePassField.getText();
     }
 
-    // --- SETTER METOTLARI ---
-    public void setOnLoginClick(Runnable action) {
+public void setOnLoginClick(Runnable action) {
         this.onLoginClick = action;
     }
 

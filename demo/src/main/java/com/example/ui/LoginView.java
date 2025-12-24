@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -12,12 +12,10 @@ import com.example.ui.components.Theme;
 
 public class LoginView extends VBox {
 
-    // Olay Dinleyicileri
-    private Runnable onSignInClick;
+private Runnable onSignInClick;
     private Runnable onRegisterClick;
 
-    // Alanları sınıf seviyesine çıkardık (Hata buradaydı!)
-    private CoTaTextField idField;
+private CoTaTextField idField;
     private CoTaPasswordField passField;
 
     public LoginView() {
@@ -46,15 +44,13 @@ public class LoginView extends VBox {
         Label subTitle = new Label("Sign in to your account");
         subTitle.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-size: 14px;");
 
-        // Alanları BAŞLATIYORUZ (Constructor içinde)
-        idField = new CoTaTextField("Bilkent Webmail / ID");
+idField = new CoTaTextField("Bilkent Webmail / ID");
         passField = new CoTaPasswordField("Password");
 
         CoTaButton signInBtn = new CoTaButton("Sign In", CoTaButton.StyleType.SECONDARY);
         signInBtn.setMaxWidth(Double.MAX_VALUE);
 
-        // Butona basınca MainApp'e haber ver
-        signInBtn.setOnAction(e -> {
+signInBtn.setOnAction(e -> {
             if (onSignInClick != null)
                 onSignInClick.run();
         });
@@ -64,8 +60,7 @@ public class LoginView extends VBox {
         forgotPass.setCursor(Cursor.HAND);
         forgotPass.setAlignment(Pos.CENTER_RIGHT);
 
-        // Hizalama için container
-        HBox forgotBox = new HBox(forgotPass);
+HBox forgotBox = new HBox(forgotPass);
         forgotBox.setAlignment(Pos.CENTER_RIGHT);
 
         loginCard.getChildren().addAll(titleLabel, subTitle, idField, passField, forgotBox, signInBtn);
@@ -88,9 +83,7 @@ public class LoginView extends VBox {
         this.getChildren().addAll(appName, loginCard, footerBox);
     }
 
-    // --- GETTER METOTLARI ---
-    // Artık idField null olmadığı için hata vermeyecek
-    public String getEmail() {
+public String getEmail() {
         return idField.getText();
     }
 
@@ -98,8 +91,7 @@ public class LoginView extends VBox {
         return passField.getText();
     }
 
-    // --- SETTER METOTLARI ---
-    public void setOnSignInClick(Runnable action) {
+public void setOnSignInClick(Runnable action) {
         this.onSignInClick = action;
     }
 

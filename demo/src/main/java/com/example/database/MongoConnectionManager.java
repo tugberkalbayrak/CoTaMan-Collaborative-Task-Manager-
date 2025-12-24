@@ -1,4 +1,4 @@
-package com.example.database;
+﻿package com.example.database;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -22,11 +22,9 @@ public class MongoConnectionManager {
     private MongoConnectionManager() {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
 
-            // LÜTFEN KENDİ BAĞLANTI LİNKİNİ BURAYA KOY
             String connectionString = "mongodb+srv://admin:sifre123@cotaman.2gv2vue.mongodb.net/?appName=Cotaman";
             String dbName = "Cotaman";
 
-            // --- POJO AYARI: Otomatik tanıma açık ---
             PojoCodecProvider pojoProvider = PojoCodecProvider.builder()
                     .automatic(true)
                     .build();
@@ -44,10 +42,10 @@ public class MongoConnectionManager {
 
             mongoClient = MongoClients.create(settings);
             database = mongoClient.getDatabase(dbName);
-            System.out.println(">> MongoDB Bağlantısı Başarılı!");
+            System.out.println(">> MongoDB Connection Successful!");
 
         } catch (Exception ex) {
-            System.out.println("HATA: Bağlantı kurulamadı!");
+            System.out.println("ERROR: Connection failed!");
             ex.printStackTrace();
         }
     }

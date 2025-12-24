@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,7 +31,6 @@ public class GroupView extends StackPane {
     private TableView<Task> taskTable;
     private StackPane overlayContainer;
 
-    // Anlık avatar güncellemesi için sınıf seviyesinde
     private HBox avatarsContainer;
 
     public GroupView(Group group) {
@@ -41,30 +40,25 @@ public class GroupView extends StackPane {
         HBox contentBox = new HBox(20);
         contentBox.setPadding(new Insets(20));
 
-        // Sol Kolon (Esnek)
-        VBox leftColumn = createLeftColumn();
+VBox leftColumn = createLeftColumn();
         HBox.setHgrow(leftColumn, Priority.ALWAYS);
 
-        // Sağ Kolon (Sabit)
-        VBox rightColumn = createRightColumn();
+VBox rightColumn = createRightColumn();
         rightColumn.setPrefWidth(300);
         rightColumn.setMinWidth(300);
 
         contentBox.getChildren().addAll(leftColumn, rightColumn);
 
-        // Popup Overlay
-        overlayContainer = new StackPane();
+overlayContainer = new StackPane();
         overlayContainer.setVisible(false);
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
 
         this.getChildren().addAll(contentBox, overlayContainer);
     }
 
-    // --- SOL KOLON (Header + Meetings + Tasks) ---
     private VBox createLeftColumn() {
         VBox box = new VBox(20);
 
-        // 1. BAŞLIK ALANI
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -90,14 +84,11 @@ public class GroupView extends StackPane {
         buttonsBox.getChildren().addAll(meetingBtn, addTaskBtn);
         header.getChildren().addAll(titleBox, spacer, buttonsBox);
 
-        // 2. TOPLANTI LİSTESİ (Upcoming/Past)
         VBox meetingSection = createMeetingSection();
 
-        // 3. GÖREV TABLOSU (TASK TABLE)
         taskTable = new TableView<>();
         styleTable(taskTable);
 
-        // Sağ Tık Menüsü
         taskTable.setRowFactory(tv -> {
             TableRow<Task> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
@@ -111,7 +102,17 @@ public class GroupView extends StackPane {
             MenuItem itemNotStarted = new MenuItem("Mark as Not Started");
             itemNotStarted.setOnAction(e -> updateTaskStatus(row.getItem(), "Not Started", "#C0392B"));
 
-            contextMenu.getItems().addAll(itemProgress, itemComplete, itemNotStarted);
+            javafx.scene.control.SeparatorMenuItem sep = new javafx.scene.control.SeparatorMenuItem();
+
+            MenuItem itemDelete = new MenuItem("Delete Task");
+            itemDelete.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            itemDelete.setOnAction(e -> {
+                Task taskToDelete = row.getItem();
+                SessionManager.getInstance().deleteTask(currentGroup, taskToDelete);
+                refreshTasks();
+            });
+
+            contextMenu.getItems().addAll(itemProgress, itemComplete, itemNotStarted, sep, itemDelete);
 
             row.contextMenuProperty().bind(
                     javafx.beans.binding.Bindings.when(row.emptyProperty())
@@ -120,8 +121,7 @@ public class GroupView extends StackPane {
             return row;
         });
 
-        // Kolonlar
-        TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
+TableColumn<Task, String> colTask = new TableColumn<>("Task Name");
         colTask.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Task, String> colOwner = new TableColumn<>("Assigned To");
@@ -133,7 +133,6 @@ public class GroupView extends StackPane {
         TableColumn<Task, String> colStatus = new TableColumn<>("Status");
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Status Renklendirme
         colStatus.setCellFactory(column -> new TableCell<Task, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -156,16 +155,13 @@ public class GroupView extends StackPane {
         taskTable.getColumns().addAll(colTask, colOwner, colDate, colStatus);
         refreshTasks();
 
-        // Sıralama: Header -> Toplantılar -> Tablo
         box.getChildren().addAll(header, meetingSection, taskTable);
         return box;
     }
 
-    // --- SAĞ KOLON (Files + Members) ---
     private VBox createRightColumn() {
         VBox box = new VBox(20);
 
-        // 1. DOSYALAR
         VBox fileSection = new VBox(10);
         fileSection.setStyle(
                 "-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-background-radius: 15; -fx-padding: 15;");
@@ -178,7 +174,8 @@ public class GroupView extends StackPane {
                 + "; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 12px;");
         fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
 
-        // 2. ÜYELER
+        fileSection.getChildren().addAll(filesTitle, fileList, uploadLink);
+
         VBox memberSection = new VBox(10);
         memberSection.setStyle(
                 "-fx-background-color: " + Theme.PANEL_COLOR1 + "; -fx-background-radius: 15; -fx-padding: 15;");
@@ -208,12 +205,13 @@ public class GroupView extends StackPane {
         return box;
     }
 
-    // --- TOPLANTI LİSTESİ METODU ---
     private VBox createMeetingSection() {
         VBox container = new VBox(10);
         container.setPadding(new Insets(0, 0, 15, 0));
 
-        Label sectionTitle = new Label("📅 Group Meetings");
+        container.setPadding(new Insets(0, 0, 15, 0));
+
+        Label sectionTitle = new Label("Group Meetings");
         sectionTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 
         VBox listContainer = new VBox(8);
@@ -246,7 +244,7 @@ public class GroupView extends StackPane {
 
         boolean isPast = event.getEndTime().isBefore(java.time.LocalDateTime.now());
 
-        Label statusIcon = new Label(isPast ? "✔ Past" : "⏳ Upcoming");
+        Label statusIcon = new Label(isPast ? "Past" : "Upcoming");
         statusIcon.setStyle(
                 "-fx-text-fill: " + (isPast ? "#95A5A6" : "#F1C40F") + "; -fx-font-weight: bold; -fx-font-size: 11px;");
         statusIcon.setMinWidth(70);
@@ -263,8 +261,6 @@ public class GroupView extends StackPane {
             row.setOpacity(0.6);
         return row;
     }
-
-    // --- POPUP VE AKSİYONLAR ---
 
     private void showAddMemberPopup() {
         AddMemberPopup popup = new AddMemberPopup();
@@ -284,7 +280,7 @@ public class GroupView extends StackPane {
             alert.setContentText(result);
             alert.showAndWait();
 
-            if (result.contains("Başarılı")) {
+            if (result.contains("Success")) {
                 String initials = getInitials(selectedFriend.getFullName());
                 avatarsContainer.getChildren().add(createAvatar(initials));
             }
@@ -324,7 +320,10 @@ public class GroupView extends StackPane {
             overlayContainer.setVisible(false);
             overlayContainer.getChildren().clear();
 
-            // SAYFAYI YENİLE (Toplantı listesi güncellensin diye)
+            SessionManager.getInstance().scheduleMeeting(currentGroup, time);
+            overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
+
             if (getParent() instanceof BorderPane) {
                 ((BorderPane) getParent()).setCenter(new GroupView(currentGroup));
             }
@@ -334,15 +333,15 @@ public class GroupView extends StackPane {
         overlayContainer.setVisible(true);
     }
 
-    // --- YARDIMCI METOTLAR ---
-
     private void updateTaskStatus(Task task, String status, String color) {
         if (task == null)
             return;
+
         task.setStatus(status);
         task.setColor(color);
-        // DB güncellemesi (SessionManager'da metot varsa):
-        // SessionManager.getInstance().updateTaskStatus(currentGroup, task, status);
+
+        SessionManager.getInstance().updateTaskStatus(currentGroup, task.getName(), status, color);
+
         taskTable.refresh();
     }
 

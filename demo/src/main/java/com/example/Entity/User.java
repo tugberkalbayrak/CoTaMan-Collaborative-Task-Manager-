@@ -1,4 +1,4 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.codecs.pojo.annotations.BsonId;
@@ -51,8 +51,7 @@ public class User {
         this.bilkentId = bilkentId;
     }
 
-    // Getter ve Setterlar
-    public ObjectId getId() {
+public ObjectId getId() {
         return id;
     }
 

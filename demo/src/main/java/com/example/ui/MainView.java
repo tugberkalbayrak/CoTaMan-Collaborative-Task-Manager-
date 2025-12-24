@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,7 +24,6 @@ public class MainView extends StackPane {
 
     private StackPane overlayContainer;
 
-    // DEĞİŞİKLİK 1: mainLayout sınıf seviyesine çıktı
     private BorderPane mainLayout;
 
     private CalendarGrid calendarGrid;
@@ -32,53 +31,37 @@ public class MainView extends StackPane {
     private VBox groupsBox;
 
     public MainView() {
-        // 1. Ana Layout (BorderPane)
         mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
         navBar = new NavBar();
         mainLayout.setTop(navBar);
 
-        // SRS Bağlantısı
         navBar.setOnSyncClick(() -> showSRSPopup());
 
         navBar.setOnFriendsClick(this::showAddFriendPopup);
 
-        // DEĞİŞİKLİK 2: Home butonuna basınca Takvime dön
         navBar.setOnHomeClick(() -> mainLayout.setCenter(createCenterArea()));
 
-        // Wire up new features
-        navBar.setOnSettingsClick(this::showSettings);
+navBar.setOnSettingsClick(this::showSettings);
         navBar.setOnNotificationsClick(this::showNotifications);
 
         VBox groupsPanel = createGroupsPanel();
         mainLayout.setRight(groupsPanel);
 
-        // --- ORTA ALAN: TAKVİM (Metot ile çağırıyoruz) ---
         mainLayout.setCenter(createCenterArea());
-
-        // FAB Butonu
-        Button addEventFab = new Button("+");
-        addEventFab.setStyle("-fx-background-color: " + Theme.PRIMARY_COLOR
-                + "; -fx-text-fill: white; -fx-font-size: 30px; -fx-font-weight: bold; -fx-background-radius: 50%; -fx-min-width: 60px; -fx-min-height: 60px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 5);");
-        addEventFab.setCursor(javafx.scene.Cursor.HAND);
-        addEventFab.setOnAction(e -> showAddEventPopup());
-        StackPane.setAlignment(addEventFab, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(addEventFab, new Insets(0, 30, 30, 0));
 
         overlayContainer = new StackPane();
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         overlayContainer.setVisible(false);
 
-        this.getChildren().addAll(mainLayout, addEventFab, overlayContainer);
+        this.getChildren().addAll(mainLayout, overlayContainer);
     }
 
-    // DEĞİŞİKLİK 3: Orta alanı (Takvimi) oluşturan metot eklendi
     private VBox createCenterArea() {
         VBox centerArea = new VBox(10);
         centerArea.setPadding(new Insets(10));
 
-        // 1. Hafta Navigasyonu
         HBox weekNav = new HBox(15);
         weekNav.setAlignment(Pos.CENTER);
         weekNav.setPadding(new Insets(0, 0, 10, 0));
@@ -95,23 +78,36 @@ public class MainView extends StackPane {
         Label weekDateLabel = new Label("Loading...");
         weekDateLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 
-        weekNav.getChildren().addAll(prevWeekBtn, todayBtn, weekDateLabel, nextWeekBtn);
+        Region spacer1 = new Region();
+        HBox.setHgrow(spacer1, Priority.ALWAYS);
 
-        // 2. Takvim Izgarası
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
+
+        Button addEventBtn = new Button("Add Event +");
+        addEventBtn.setStyle("-fx-background-color: " + Theme.PRIMARY_COLOR
+                + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 8 15 8 15;");
+        addEventBtn.setOnAction(e -> showAddEventPopup());
+
+        weekNav.getChildren().addAll(prevWeekBtn, todayBtn, nextWeekBtn, spacer1, weekDateLabel, spacer2, addEventBtn);
+
         calendarGrid = new CalendarGrid();
         calendarGrid.setWeekLabel(weekDateLabel);
 
-        // Verileri Yükle
         calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
 
-        // Buton Olayları
+        calendarGrid.setOnDeleteRequest(event -> {
+            SessionManager.getInstance().deleteEvent(event);
+            calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
+        });
+
         prevWeekBtn.setOnAction(e -> calendarGrid.changeWeek(-1));
         nextWeekBtn.setOnAction(e -> calendarGrid.changeWeek(1));
         todayBtn.setOnAction(e -> calendarGrid.resetToToday());
 
         ScrollPane scrollPane = new ScrollPane(calendarGrid);
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false); // Takvim uzun kalsın, scroll olsun
+        scrollPane.setFitToHeight(false);
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
@@ -165,7 +161,7 @@ public class MainView extends StackPane {
             });
 
             popup.setOnCreate((name, course) -> {
-                System.out.println("Grup Oluşturuluyor: " + name);
+                System.out.println("Creating Group: " + name);
                 SessionManager.getInstance().createGroup(name, course);
                 refreshGroupList();
                 overlayContainer.setVisible(false);
@@ -188,36 +184,24 @@ public class MainView extends StackPane {
             groupsBox.getChildren().add(new Label("No groups"));
         else
             for (Group group : myGroups)
-                // DEĞİŞİKLİK 4: Group nesnesini gönderiyoruz
                 groupsBox.getChildren().add(createGroupItem(group));
     }
 
-    // DEĞİŞİKLİK 5: createGroupItem artık Group nesnesi alıyor ve GroupView'a
-    // yönlendiriyor
     private Label createGroupItem(Group group) {
         Label lbl = new Label("● " + group.getGroupName());
         lbl.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 5;");
         lbl.setCursor(javafx.scene.Cursor.HAND);
 
         lbl.setOnMouseClicked(e -> {
-            // GroupView sayfasını oluştur (Artık sadece içerik, navbar yok)
             GroupView groupContent = new GroupView(group);
 
-            // Ekranın ortasına yerleştir
             mainLayout.setCenter(groupContent);
-
-            // NOT: Geri dönüş butonu nerede?
-            // MainView'daki ana NavBar'da zaten var!
-            // navBar.setOnHomeClick(...) zaten MainView constructor'ında tanımlı.
-            // Home'a basınca otomatik olarak Takvim'e dönecek.
         });
 
         return lbl;
     }
 
-    // ... (Popup metotları aynı) ...
-
-    public void showSRSPopup() {
+public void showSRSPopup() {
         SRSPopup popup = new SRSPopup();
         popup.setOnCancel(() -> {
             overlayContainer.setVisible(false);
@@ -237,7 +221,7 @@ public class MainView extends StackPane {
                         overlayContainer.setVisible(false);
                         calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
                     },
-                    () -> System.out.println("SMS Yanlış!"));
+                    () -> System.out.println("SMS Incorrect!"));
         });
         overlayContainer.getChildren().clear();
         overlayContainer.getChildren().add(popup);
@@ -246,31 +230,48 @@ public class MainView extends StackPane {
 
     public void showAddEventPopup() {
         AddEventPopup popup = new AddEventPopup();
+
         popup.setOnCancel(() -> {
-            overlayContainer.getChildren().clear();
             overlayContainer.setVisible(false);
+            overlayContainer.getChildren().clear();
         });
+
         popup.setOnSave(() -> {
             String name = popup.getEventName();
             int dayIndex = popup.getDayIndex();
-            int timeIndex = popup.getTimeIndex();
-            String color = popup.getSelectedColor();
-            if (name != null && !name.isEmpty() && dayIndex >= 0 && timeIndex >= 0) {
-                // UI'a geçici ekle
-                calendarGrid.addEvent(dayIndex, timeIndex, name, color);
-                // DB'ye kaydet
-                LocalDate targetDate = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            String startTime = popup.getStartTime();
+            String endTime = popup.getEndTime();
+
+            com.example.Entity.Importance selectedImp = popup.getSelectedImportance();
+
+            if (name != null && !name.isEmpty() && dayIndex >= 0 && startTime != null && endTime != null
+                    && selectedImp != null) {
+                 
+                java.time.LocalDate targetDate = java.time.LocalDate.now()
+                        .with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
                         .plusDays(dayIndex);
-                String startStr = targetDate.toString() + "T" + (String.format("%02d", 8 + timeIndex)) + ":00";
-                String endStr = targetDate.toString() + "T" + (String.format("%02d", 9 + timeIndex)) + ":00";
 
-                SessionManager.getInstance().addEvent(name, startStr, endStr, popup.getSelectedImportance());
+                String startIso = targetDate.toString() + "T" + startTime + ":00";
+                String endIso = targetDate.toString() + "T" + endTime + ":00";
 
-                calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
+                String result = SessionManager.getInstance().addEvent(name, startIso, endIso, selectedImp);
+
+                if (result.equals("Success")) {
+                    calendarGrid.loadEvents(SessionManager.getInstance().getUserEvents());
+                    overlayContainer.getChildren().clear();
+                    overlayContainer.setVisible(false);
+                } else {
+                    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                            javafx.scene.control.Alert.AlertType.ERROR);
+                    alert.setTitle("Scheduling Conflict");
+                    alert.setHeaderText("Cannot Add Event");
+                    alert.setContentText(result);
+                    alert.showAndWait();
+                }
             }
-            overlayContainer.getChildren().clear();
-            overlayContainer.setVisible(false);
         });
+
+        overlayContainer.getChildren().clear();
         overlayContainer.getChildren().add(popup);
         overlayContainer.setVisible(true);
     }
@@ -284,7 +285,7 @@ public class MainView extends StackPane {
 
         popup.setOnAdd((email) -> {
             String result = SessionManager.getInstance().addFriend(email);
-            popup.setStatus(result, result.contains("Başarılı"));
+            popup.setStatus(result, result.contains("Success"));
         });
 
         overlayContainer.getChildren().clear();

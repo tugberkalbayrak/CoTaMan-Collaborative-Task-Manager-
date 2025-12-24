@@ -1,27 +1,23 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import org.bson.types.ObjectId;
-import java.time.LocalDate; // Tarih formatı için gerekli
+import java.time.LocalDate;  
 
 public class DateInfo {
-    // MongoDB ID
+     
     private ObjectId id;
     
     private String description;
-    private LocalDate date; // Artık String değil, LocalDate tutuyoruz
+    private LocalDate date;  
 
-    // Boş Constructor (MongoDB için zorunlu)
-    public DateInfo() {}
+public DateInfo() {}
 
-    // Veri doldurmak için kullandığımız yapıcı
-    public DateInfo(String description, LocalDate date) {
+public DateInfo(String description, LocalDate date) {
         this.description = description;
         this.date = date;
     }
 
-    // --- Getter ve Setter Metotları ---
-    
-    public ObjectId getId() { return id; }
+public ObjectId getId() { return id; }
     public void setId(ObjectId id) { this.id = id; }
 
     public String getDescription() { return description; }

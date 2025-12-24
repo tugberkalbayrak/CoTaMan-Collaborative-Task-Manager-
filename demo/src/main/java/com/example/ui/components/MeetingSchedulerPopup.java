@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import com.example.Entity.TimeSlot;
 import javafx.geometry.Insets;
@@ -23,10 +23,10 @@ public class MeetingSchedulerPopup extends VBox {
 
     private VBox slotsContainer;
     private ToggleGroup toggleGroup;
-    private String finalSelectedRange = null; // Format: "dd MMM yyyy - HH:mm - HH:mm"
+    private String finalSelectedRange = null;
 
     public MeetingSchedulerPopup(List<TimeSlot> availableSlots) {
-        this.setMaxWidth(480); // Genişliği artırdık
+        this.setMaxWidth(480);
         this.setSpacing(15);
         this.setPadding(new Insets(20));
         this.setAlignment(Pos.CENTER_LEFT);
@@ -87,7 +87,6 @@ public class MeetingSchedulerPopup extends VBox {
         container.setPadding(new Insets(10));
         container.setStyle("-fx-background-color: #9B59B6; -fx-background-radius: 15;");
 
-        // 1. Üst Satır: Tarih Bilgisi
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -105,10 +104,9 @@ public class MeetingSchedulerPopup extends VBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().addAll(rb, spacer);
 
-        // 2. Alt Satır: Start & End ComboBox
         HBox selectors = new HBox(10);
         selectors.setAlignment(Pos.CENTER_LEFT);
-        selectors.setVisible(false); // Başlangıçta gizli
+        selectors.setVisible(false);
 
         ComboBox<String> startSelect = new ComboBox<>();
         startSelect.setPromptText("Start");
@@ -117,9 +115,8 @@ public class MeetingSchedulerPopup extends VBox {
         ComboBox<String> endSelect = new ComboBox<>();
         endSelect.setPromptText("End");
         endSelect.setStyle("-fx-font-size: 11px;");
-        endSelect.setDisable(true); // Start seçilmeden End seçilemez
+        endSelect.setDisable(true);
 
-        // Start ComboBox Doldur (30 dk aralıklarla)
         LocalDateTime temp = slot.getStart();
         DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -128,19 +125,18 @@ public class MeetingSchedulerPopup extends VBox {
             temp = temp.plusMinutes(30);
         }
 
-        // Event: Start Seçilince End Kutusunu Doldur
         startSelect.setOnAction(e -> {
             endSelect.getItems().clear();
             endSelect.setDisable(false);
 
             if (startSelect.getValue() != null) {
-                // Seçilen saati parse et
+
                 String[] parts = startSelect.getValue().split(":");
                 int h = Integer.parseInt(parts[0]);
                 int m = Integer.parseInt(parts[1]);
 
                 LocalDateTime selectedStart = slot.getStart().withHour(h).withMinute(m);
-                LocalDateTime endTemp = selectedStart.plusMinutes(30); // En az 30 dk sonrası
+                LocalDateTime endTemp = selectedStart.plusMinutes(30);
 
                 while (endTemp.isBefore(slot.getEnd()) || endTemp.isEqual(slot.getEnd())) {
                     endSelect.getItems().add(endTemp.format(timeFmt));
@@ -149,7 +145,6 @@ public class MeetingSchedulerPopup extends VBox {
             }
         });
 
-        // Event: End Seçilince Kayıt Stringini Oluştur
         endSelect.setOnAction(e -> {
             if (startSelect.getValue() != null && endSelect.getValue() != null) {
                 updateFinalSelection(slot.getStart(), startSelect.getValue(), endSelect.getValue());
@@ -159,7 +154,6 @@ public class MeetingSchedulerPopup extends VBox {
         selectors.getChildren().addAll(new Label("Start:"), startSelect, new Label("End:"), endSelect);
         container.getChildren().addAll(header, selectors);
 
-        // Radio Button Seçilince Kutuları Göster
         rb.selectedProperty().addListener((obs, oldVal, newVal) -> {
             selectors.setVisible(newVal);
             if (!newVal) {
@@ -173,11 +167,11 @@ public class MeetingSchedulerPopup extends VBox {
     }
 
     private void updateFinalSelection(LocalDateTime slotDate, String startStr, String endStr) {
-        // Format: "25 Dec 2025 - 14:00 - 15:30"
+
         DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy");
         String dateStr = slotDate.format(dateFmt);
         this.finalSelectedRange = dateStr + " - " + startStr + " - " + endStr;
-        System.out.println("Seçilen Aralık: " + this.finalSelectedRange);
+        System.out.println("Selected Range: " + this.finalSelectedRange);
     }
 
     public void setOnCancel(Runnable action) {

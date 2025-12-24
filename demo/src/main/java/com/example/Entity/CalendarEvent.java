@@ -1,4 +1,4 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -15,15 +15,12 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
     private Importance importance;
     private String location;
 
-    // --- YENİ EKLENEN ALAN ---
-    private String description;
-    // -------------------------
+private String description;
 
-    public CalendarEvent() {
+public CalendarEvent() {
     }
 
-    // Mevcut Constructor (Bozulmaması için ellemedik)
-    public CalendarEvent(User owner, String title, String location, LocalDateTime start, LocalDateTime end,
+public CalendarEvent(User owner, String title, String location, LocalDateTime start, LocalDateTime end,
             Importance imp) {
         this.owner = owner;
         this.title = title;
@@ -31,11 +28,10 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
         this.startTime = start;
         this.endTime = end;
         this.importance = imp;
-        this.description = ""; // Varsayılan boş olsun
+        this.description = "";  
     }
 
-    // İstersen açıklama ekleyerek oluşturmak için yeni bir constructor
-    public CalendarEvent(User owner, String title, String location, String description, LocalDateTime start,
+public CalendarEvent(User owner, String title, String location, String description, LocalDateTime start,
             LocalDateTime end, Importance imp) {
         this.owner = owner;
         this.title = title;
@@ -102,11 +98,10 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
         this.location = location;
     }
 
-    // --- YENİ METOTLAR (HATAYI ÇÖZEN KISIM) ---
-    public String getDescription() {
-        // Eğer açıklama null ise (veritabanında yoksa) boş string dön, hata vermesin
+public String getDescription() {
+         
         if (description == null) {
-            // Eğer açıklama yoksa ama lokasyon varsa onu gösterelim (Kullanışlı olur)
+             
             if (location != null && !location.isEmpty()) {
                 return "Location: " + location;
             }
@@ -118,15 +113,14 @@ public class CalendarEvent implements Comparable<CalendarEvent> {
     public void setDescription(String description) {
         this.description = description;
     }
-    // ------------------------------------------
 
-    public boolean overlaps(CalendarEvent other) {
+public boolean overlaps(CalendarEvent other) {
         return (this.startTime.isBefore(other.endTime) && other.startTime.isBefore(this.endTime));
     }
 
     @Override
     public int compareTo(CalendarEvent other) {
-        // Sort by Importance (High to Low), then by Date
+         
         int priorityComparison = Integer.compare(other.importance.getWeight(), this.importance.getWeight());
         if (priorityComparison != 0)
             return priorityComparison;

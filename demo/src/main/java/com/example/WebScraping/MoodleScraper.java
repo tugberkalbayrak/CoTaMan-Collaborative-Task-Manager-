@@ -1,4 +1,4 @@
-package com.example.WebScraping;
+﻿package com.example.WebScraping;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,9 +19,7 @@ import java.util.Map;
 
 public class MoodleScraper {
 
-    // NOTE: Bilkent Moodle URLs change by academic year.
-    // You might need to update this URL to the current active semester!
-    private static final String MOODLE_BASE_URL = "https://moodle.bilkent.edu.tr/2025-2026-fall";
+private static final String MOODLE_BASE_URL = "https://moodle.bilkent.edu.tr/2025-2026-fall";
     private static final String LOGIN_URL = MOODLE_BASE_URL + "/login/index.php";
 
     private HttpClient client;
@@ -29,29 +27,22 @@ public class MoodleScraper {
     private boolean isLoggedIn = false;
 
     public MoodleScraper() {
-        // 1. Setup the Cookie Manager
-        // This acts like a browser's memory, storing the "Session ID" automatically.
-        this.cookieManager = new CookieManager();
+
+this.cookieManager = new CookieManager();
         this.cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 
-        // 2. Build the Client
-        this.client = HttpClient.newBuilder()
+this.client = HttpClient.newBuilder()
                 .cookieHandler(this.cookieManager)
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
     }
 
-    /**
-     * Connects to Moodle by performing the full login handshake.
-     * [cite: 161]
-     */
-    public boolean connect(String username, String password) {
+public boolean connect(String username, String password) {
         try {
             System.out.println("Fetching login token from Moodle...");
 
-            // Step A: GET the login page first to find the "logintoken"
-            HttpRequest getRequest = HttpRequest.newBuilder()
+HttpRequest getRequest = HttpRequest.newBuilder()
                     .uri(URI.create(LOGIN_URL))
                     .GET()
                     .build();
@@ -59,8 +50,7 @@ public class MoodleScraper {
             HttpResponse<String> getResponse = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
             String loginPageHtml = getResponse.body();
 
-            // Parse HTML to find the hidden <input name="logintoken" value="...">
-            Document doc = Jsoup.parse(loginPageHtml);
+Document doc = Jsoup.parse(loginPageHtml);
             Element tokenInput = doc.selectFirst("input[name=logintoken]");
 
             if (tokenInput == null) {
@@ -71,9 +61,7 @@ public class MoodleScraper {
             String loginToken = tokenInput.val();
             System.out.println("Token found: " + loginToken.substring(0, 10) + "...");
 
-            // Step B: POST the credentials + token
-            // We need to format data as: username=abc&password=123&logintoken=xyz
-            Map<String, String> formData = new HashMap<>();
+Map<String, String> formData = new HashMap<>();
             formData.put("username", username);
             formData.put("password", password);
             formData.put("logintoken", loginToken);
@@ -89,10 +77,7 @@ public class MoodleScraper {
             System.out.println("Sending login request...");
             HttpResponse<String> postResponse = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
 
-            // Step C: Verify success
-            // If login fails, Moodle usually keeps you on the login page containing
-            // "Invalid login"
-            if (postResponse.body().contains("Dashboard") || postResponse.body().contains("My courses")) {
+if (postResponse.body().contains("Dashboard") || postResponse.body().contains("My courses")) {
                 this.isLoggedIn = true;
                 System.out.println("Login Successful! User is authenticated.");
                 return true;
@@ -118,9 +103,7 @@ public class MoodleScraper {
         try {
             System.out.println("Fetching 'Upcoming Events' from Moodle...");
 
-            // 1. Request the "Upcoming Events" page specifically
-            // This page lists all deadlines in a clean format
-            String calendarUrl = MOODLE_BASE_URL + "/calendar/view.php?view=upcoming";
+String calendarUrl = MOODLE_BASE_URL + "/calendar/view.php?view=upcoming";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(calendarUrl))
@@ -130,41 +113,33 @@ public class MoodleScraper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             Document doc = Jsoup.parse(response.body());
 
-            // 2. Find the Event Cards
-            // Moodle usually wraps events in divs with class "event" or
-            // "calendar_event_item"
-            // Note: Selectors might need tweaking if Bilkent uses a custom theme.
-            // We look for any div that looks like an event card.
-            org.jsoup.select.Elements eventCards = doc.select(".event");
+org.jsoup.select.Elements eventCards = doc.select(".event");
 
             if (eventCards.isEmpty()) {
-                // Fallback: Try the "m-t-1" class which is common in some Moodle themes
+                 
                 eventCards = doc.select("div[data-region='event-item']");
             }
 
             System.out.println("Found " + eventCards.size() + " raw event elements.");
 
             for (Element card : eventCards) {
-                String title = card.select("h3.name").text(); // Title usually in h3
-                String dateText = card.select(".date").text(); // Date usually in a class .date
-                String courseName = card.select(".course").text(); // Course name if available
+                String title = card.select("h3.name").text();  
+                String dateText = card.select(".date").text();  
+                String courseName = card.select(".course").text();  
 
-                // If title is empty, skip (it might be a layout div)
-                if (title.isEmpty())
+if (title.isEmpty())
                     continue;
 
                 CalendarEvent event = new CalendarEvent();
                 event.setTitle(title + " (" + courseName + ")");
                 event.setLocation("Moodle Submission");
-                event.setImportance(Importance.MUST); // Assignments are critical!
+                event.setImportance(Importance.MUST);  
 
-                System.out.println("   (Debug) Raw Moodle Date: " + dateText); // Let's see what we got
+                System.out.println("   (Debug) Raw Moodle Date: " + dateText);  
 
-                // DEĞİŞİKLİK: Kullanıcı isteği üzerine, çekilen tarih BİTİŞ saati (Deadline)
-                // olarak ayarlandı.
-                LocalDateTime deadline = parseMoodleDate(dateText);
+LocalDateTime deadline = parseMoodleDate(dateText);
                 event.setEndTime(deadline);
-                event.setStartTime(deadline.minusHours(1)); // Başlangıç varsayılan olarak 1 saat önce
+                event.setStartTime(deadline.minusHours(1));  
 
                 moodleEvents.add(event);
                 System.out.println("Scraped Assignment: " + event.getTitle() + " Due: " + event.getStartTime());
@@ -181,8 +156,7 @@ public class MoodleScraper {
         return moodleEvents;
     }
 
-    // Helper to turn a Map into "key=value&key2=value2" string
-    private String buildFormData(Map<String, String> data) {
+private String buildFormData(Map<String, String> data) {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : data.entrySet()) {
             if (builder.length() > 0)
@@ -194,35 +168,25 @@ public class MoodleScraper {
         return builder.toString();
     }
 
-    /**
-     * Parses Moodle date formats like "Friday, 12 December, 17:00"
-     * or "Yesterday, 14:00"
-     */
-    private LocalDateTime parseMoodleDate(String rawDate) {
+private LocalDateTime parseMoodleDate(String rawDate) {
         try {
-            // 1. Clean the string
-            // Input: "Friday, 12 December, 17:00"
-            // Remove the day name if present (anything before the first comma)
-            String cleanDate = rawDate;
+
+String cleanDate = rawDate;
             if (rawDate.contains(",")) {
-                // If it splits into 3 parts (Day, Date, Time), take the last two
-                // Example: "Friday, 12 December, 17:00" -> " 12 December, 17:00"
-                int firstComma = rawDate.indexOf(",");
+
+int firstComma = rawDate.indexOf(",");
                 cleanDate = rawDate.substring(firstComma + 1).trim();
             }
 
-            // 2. Handle "Tomorrow" / "Yesterday" special cases
-            if (cleanDate.toLowerCase().startsWith("tomorrow")) {
-                String timePart = cleanDate.split(",")[1].trim(); // "17:00"
+if (cleanDate.toLowerCase().startsWith("tomorrow")) {
+                String timePart = cleanDate.split(",")[1].trim();  
                 java.time.LocalTime time = java.time.LocalTime.parse(timePart,
                         java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
                 return LocalDateTime.now().plusDays(1).with(time);
             }
 
-            // 3. Standard Parse: "12 December, 17:00"
-            // We append the current year because Moodle often hides it
-            int currentYear = java.time.Year.now().getValue();
-            String dateWithYear = cleanDate + " " + currentYear; // "12 December, 17:00 2025"
+int currentYear = java.time.Year.now().getValue();
+            String dateWithYear = cleanDate + " " + currentYear;  
 
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                     .ofPattern("d MMMM, HH:mm yyyy", java.util.Locale.ENGLISH);

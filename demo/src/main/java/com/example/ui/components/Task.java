@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
@@ -18,8 +18,7 @@ public class Task {
     @BsonProperty("color")
     private String color;
 
-    // BU BOŞ CONSTRUCTOR ŞART! (Yoksa veritabanından okunmaz)
-    public Task() {
+public Task() {
     }
 
     public Task(String name, String owner, String dueDate, String status, String color) {
@@ -30,8 +29,7 @@ public class Task {
         this.color = color;
     }
 
-    // Getter & Setter'lar
-    public String getName() {
+public String getName() {
         return name;
     }
 

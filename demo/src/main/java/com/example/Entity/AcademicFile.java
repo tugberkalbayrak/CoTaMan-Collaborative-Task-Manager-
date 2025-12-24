@@ -1,4 +1,4 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public class AcademicFile {
     private FileType type;
     private Visibility visibility;
     private List<String> versionHistoryPaths;
-    private String courseCode; // --- YENİ ALAN ---
+    private String courseCode;  
 
     public AcademicFile() {
     }

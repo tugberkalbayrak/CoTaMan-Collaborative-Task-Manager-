@@ -1,4 +1,4 @@
-package com.example.WebScraping;
+﻿package com.example.WebScraping;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -30,7 +30,7 @@ public class SRSScraper {
 
     private HttpClient client;
     private CookieManager cookieManager;
-    private String lastResponseHtml; // SMS sayfasındaki tokenları saklamak için
+    private String lastResponseHtml;  
 
     public SRSScraper() {
         this.cookieManager = new CookieManager();
@@ -42,22 +42,17 @@ public class SRSScraper {
                 .build();
     }
 
-    // --- ADIM 1: KULLANICI ADI ŞİFRE GÖNDER ---
-    // Dönüş Değeri:
-    // 0 = Başarısız
-    // 1 = Başarılı (Direkt girdi - nadirdir)
-    // 2 = SMS Gerekli (En olası durum)
-    public int startLogin(String username, String password) {
+public int startLogin(String username, String password) {
         try {
             HttpResponse<String> response = sendLoginRequest(username, password);
             this.lastResponseHtml = response.body();
 
             if (lastResponseHtml.contains("verification code") || response.uri().toString().contains("verifySms")) {
-                return 2; // SMS GEREKLİ
+                return 2;  
             } else if (lastResponseHtml.contains("Welcome") || lastResponseHtml.contains("Log Out")) {
-                return 1; // DİREKT GİRİŞ
+                return 1;  
             } else {
-                return 0; // HATA
+                return 0;  
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,8 +60,7 @@ public class SRSScraper {
         }
     }
 
-    // --- ADIM 2: SMS KODUNU GÖNDER ---
-    public boolean verifySmsCode(String smsCode) {
+public boolean verifySmsCode(String smsCode) {
         try {
             return verifySMSCodeInternal(this.lastResponseHtml, smsCode);
         } catch (Exception e) {
@@ -75,9 +69,7 @@ public class SRSScraper {
         }
     }
 
-    // --- YARDIMCI METOTLAR ---
-
-    private HttpResponse<String> sendLoginRequest(String ID, String password) throws Exception {
+private HttpResponse<String> sendLoginRequest(String ID, String password) throws Exception {
         HttpRequest getRequest = HttpRequest.newBuilder().uri(URI.create("https://stars.bilkent.edu.tr/srs/")).GET()
                 .build();
         HttpResponse<String> getResponse = client.send(getRequest, HttpResponse.BodyHandlers.ofString());
@@ -124,9 +116,7 @@ public class SRSScraper {
         return response.body().contains("STARS::SRS") || response.body().contains("xenon");
     }
 
-    // --- VERİ ÇEKME ---
-
-    public ArrayList<WeeklyLecture> fetchWeeklySchedule() {
+public ArrayList<WeeklyLecture> fetchWeeklySchedule() {
         ArrayList<WeeklyLecture> schedule = new ArrayList<>();
         try {
             String scheduleUrl = "https://stars.bilkent.edu.tr/srs-v2/schedule/index/weekly";

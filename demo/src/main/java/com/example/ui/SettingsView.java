@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import com.example.Entity.User;
 import com.example.Manager.SessionManager;
@@ -46,25 +46,21 @@ public class SettingsView extends VBox {
     form.setMaxWidth(400);
     form.setAlignment(Pos.CENTER);
 
-    // Profile Photo Display
-    profileImageView = new ImageView();
+profileImageView = new ImageView();
     profileImageView.setFitWidth(100);
     profileImageView.setFitHeight(100);
-    profileImageView.setPreserveRatio(false); // Make it fill the circle
+    profileImageView.setPreserveRatio(false);  
 
-    // Clip to Circle
-    Circle clip = new Circle(50, 50, 50);
+Circle clip = new Circle(50, 50, 50);
     profileImageView.setClip(clip);
 
-    // Load existing image if available
-    updateProfileImage(user.getProfilePhotoPath());
+updateProfileImage(user.getProfilePhotoPath());
 
     nameField = createStyledTextField("Full Name", user.getFullName());
     emailField = createStyledTextField("Email", user.getEmail());
     bilkentIdField = createStyledTextField("Bilkent ID", user.getBilkentId());
 
-    // Photo Path with Browse Button
-    Label photoLabel = new Label("Profile Photo Path");
+Label photoLabel = new Label("Profile Photo Path");
     photoLabel.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 12px;");
 
     HBox photoBox = new HBox(10);
@@ -80,7 +76,7 @@ public class SettingsView extends VBox {
           new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
       File selectedFile = fileChooser.showOpenDialog(this.getScene().getWindow());
       if (selectedFile != null) {
-        String path = selectedFile.toURI().toString(); // Use URI format for Image class
+        String path = selectedFile.toURI().toString();  
         photoPathField.setText(path);
         updateProfileImage(path);
       }
@@ -111,11 +107,11 @@ public class SettingsView extends VBox {
   private void updateProfileImage(String path) {
     if (path != null && !path.isEmpty()) {
       try {
-        // Handle local file paths that might not be URIs yet
+         
         if (!path.startsWith("file:") && !path.startsWith("http")) {
           path = new File(path).toURI().toString();
         }
-        Image image = new Image(path, 100, 100, false, false); // Background loading false to see errors if any
+        Image image = new Image(path, 100, 100, false, false);  
         if (!image.isError()) {
           profileImageView.setImage(image);
         }
@@ -131,7 +127,7 @@ public class SettingsView extends VBox {
       user.setFullName(nameField.getText());
       user.setEmail(emailField.getText());
       user.setBilkentId(bilkentIdField.getText());
-      // Save the raw path (or URI) as displayed in the field
+       
       user.setProfilePhotoPath(photoPathField.getText());
 
       SessionManager.getInstance().getRepository().updateUser(user);

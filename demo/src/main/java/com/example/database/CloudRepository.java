@@ -1,4 +1,4 @@
-package com.example.database;
+﻿package com.example.database;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -17,7 +17,6 @@ import com.example.Entity.CalendarEvent;
 import com.example.Entity.Group;
 import com.example.Entity.User;
 import com.example.Entity.Visibility;
-// Task import edildi
 
 public class CloudRepository {
 
@@ -25,28 +24,28 @@ public class CloudRepository {
     private final MongoCollection<Document> rawUserCollection;
 
     private final MongoCollection<Group> groupCollection;
-    private final MongoCollection<Document> rawGroupCollection; // Manuel kayıt için
+    private final MongoCollection<Document> rawGroupCollection;
 
     private final MongoCollection<CalendarEvent> eventCollection;
     private final MongoCollection<AcademicFile> fileCollection;
 
+    private final MongoCollection<Document> rawCalendarCollection;
+
     public CloudRepository() {
         MongoDatabase db = MongoConnectionManager.getInstance().getDatabase();
 
-        // User
-        this.userCollection = db.getCollection("users", User.class);
+this.userCollection = db.getCollection("users", User.class);
         this.rawUserCollection = db.getCollection("users");
 
-        // Group
-        this.groupCollection = db.getCollection("groups", Group.class);
+this.groupCollection = db.getCollection("groups", Group.class);
         this.rawGroupCollection = db.getCollection("groups");
 
-        // Event & File
-        this.eventCollection = db.getCollection("events", CalendarEvent.class);
+this.eventCollection = db.getCollection("events", CalendarEvent.class);
+
+        this.rawCalendarCollection = db.getCollection("events");
+
         this.fileCollection = db.getCollection("files", AcademicFile.class);
     }
-
-    // --- GRUP METOTLARI ---
 
     public void createGroup(Group group) {
         try {
@@ -56,12 +55,12 @@ public class CloudRepository {
             doc.append("courseCode", group.getCourseCode());
             doc.append("memberIds", group.getMemberIds());
             doc.append("groupArchive", new ArrayList<>());
-            doc.append("tasks", new ArrayList<>()); // Task listesi boş başlasın
+            doc.append("tasks", new ArrayList<>());
 
             rawGroupCollection.insertOne(doc);
-            System.out.println("✅ Grup (Manuel) oluşturuldu: " + group.getGroupName());
+            System.out.println("Group (Manual) created: " + group.getGroupName());
         } catch (Exception e) {
-            System.out.println("❌ Grup oluşturma hatası: " + e.getMessage());
+            System.out.println("Group creation error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -71,8 +70,6 @@ public class CloudRepository {
         groupCollection.find(Filters.in("memberIds", userId)).into(groups);
         return groups;
     }
-
-    // --- USER METOTLARI ---
 
     public void saveUser(User user) {
         User existing = getUserByEmail(user.getEmail());
@@ -88,9 +85,9 @@ public class CloudRepository {
             doc.append("friends", new ArrayList<>());
 
             rawUserCollection.insertOne(doc);
-            System.out.println("Kullanıcı (Manuel) kaydedildi: " + user.getEmail());
+            System.out.println("User (Manual) saved: " + user.getEmail());
         } else {
-            System.out.println("HATA: Bu email zaten kayıtlı!");
+            System.out.println("ERROR: This email is already registered!");
         }
     }
 
@@ -109,12 +106,11 @@ public class CloudRepository {
             updateDoc.append("email", user.getEmail());
             updateDoc.append("bilkentId", user.getBilkentId());
             updateDoc.append("profilePhotoPath", user.getProfilePhotoPath());
-            // Password and other fields if needed
 
             rawUserCollection.updateOne(Filters.eq("_id", user.getId()), new Document("$set", updateDoc));
-            System.out.println("✅ Kullanıcı güncellendi: " + user.getFullName());
+            System.out.println("User updated: " + user.getFullName());
         } catch (Exception e) {
-            System.out.println("❌ Kullanıcı güncelleme hatası: " + e.getMessage());
+            System.out.println("User update error: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -123,11 +119,9 @@ public class CloudRepository {
         return userCollection.find(Filters.eq("bilkentId", bilkentId)).first();
     }
 
-    // --- CALENDAR & FILE METOTLARI ---
-
     public void saveEvent(CalendarEvent event) {
         eventCollection.insertOne(event);
-        System.out.println("Etkinlik eklendi: " + event.getTitle());
+        System.out.println("Event added: " + event.getTitle());
     }
 
     public List<CalendarEvent> getEventsForUser(ObjectId userId) {
@@ -155,20 +149,19 @@ public class CloudRepository {
                     .append("status", task.getStatus())
                     .append("color", task.getColor());
 
-            // "$push" komutu ile listeye yeni görev ekliyoruz
             rawGroupCollection.updateOne(
                     Filters.eq("_id", groupId),
                     new Document("$push", new Document("tasks", taskDoc)));
-            System.out.println("✅ Görev veritabanına eklendi: " + task.getName());
+            System.out.println("Task added to database: " + task.getName());
         } catch (Exception e) {
-            System.out.println("❌ Görev ekleme hatası: " + e.getMessage());
+            System.out.println("Task addition error: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public void openFile(AcademicFile file) {
         if (file == null || file.getDiskPath() == null) {
-            System.out.println("HATA: Dosya veya dosya yolu geçersiz.");
+            System.out.println("ERROR: File or file path is invalid.");
             return;
         }
         String path = file.getDiskPath();
@@ -176,35 +169,31 @@ public class CloudRepository {
             if (Desktop.isDesktopSupported()) {
                 Desktop desktop = Desktop.getDesktop();
                 if (path.startsWith("http://") || path.startsWith("https://")) {
-                    // Link ise tarayıcıda aç
                     desktop.browse(new URI(path));
-                    System.out.println("Bağlantı tarayıcıda açılıyor: " + path);
+                    System.out.println("Opening link in browser: " + path);
                 } else {
-                    // Yerel dosya ise varsayılan uygulama ile aç
                     File localFile = new File(path);
                     if (localFile.exists()) {
                         desktop.open(localFile);
-                        System.out.println("Dosya açılıyor: " + localFile.getName());
+                        System.out.println("Opening file: " + localFile.getName());
                     } else {
-                        System.out.println("HATA: Dosya diskte bulunamadı! -> " + path);
+                        System.out.println("ERROR: File not found on disk! -> " + path);
                     }
                 }
             } else {
-                System.out.println("HATA: Bu sistemde dosya açma işlemi desteklenmiyor.");
+                System.out.println("ERROR: File opening process not supported on this system.");
             }
         } catch (Exception e) {
-            System.out.println("Dosya açılırken bir hata oluştu: " + e.getMessage());
+            System.out.println("An error occurred while opening the file: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public boolean addFriend(ObjectId userId, ObjectId friendId) {
         try {
-            // Kullanıcının arkadaş listesine ekle
             rawUserCollection.updateOne(
                     Filters.eq("_id", userId),
                     new Document("$addToSet", new Document("friends", friendId)));
-            // Arkadaşın listesine de kullanıcıyı ekle (Karşılıklı arkadaşlık)
             rawUserCollection.updateOne(
                     Filters.eq("_id", friendId),
                     new Document("$addToSet", new Document("friends", userId)));
@@ -217,13 +206,12 @@ public class CloudRepository {
 
     public boolean addMemberToGroup(ObjectId groupId, ObjectId newMemberId) {
         try {
-            // "memberIds" listesine yeni ID'yi ekle ($addToSet ile tekrarı önle)
             rawGroupCollection.updateOne(
                     Filters.eq("_id", groupId),
                     new Document("$addToSet", new Document("memberIds", newMemberId)));
             return true;
         } catch (Exception e) {
-            System.out.println("❌ Üye ekleme hatası: " + e.getMessage());
+            System.out.println("Member addition error: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -231,7 +219,6 @@ public class CloudRepository {
 
     public List<AcademicFile> getPrivateFiles(ObjectId userId) {
         List<AcademicFile> files = new ArrayList<>();
-        // Hem 'uploader' ID'si benim ID'm olmalı, hem de visibility 'PRIVATE' olmalı
         fileCollection.find(
                 Filters.and(
                         Filters.eq("uploader._id", userId),
@@ -248,5 +235,50 @@ public class CloudRepository {
                         Filters.eq("courseCode", courseCode)))
                 .into(files);
         return files;
+    }
+
+    public boolean updateTaskStatus(org.bson.types.ObjectId groupId, String taskName, String newStatus,
+            String newColor) {
+        try {
+            rawGroupCollection.updateOne(
+                    com.mongodb.client.model.Filters.and(
+                            com.mongodb.client.model.Filters.eq("_id", groupId),
+                            com.mongodb.client.model.Filters.eq("tasks.name", taskName)),
+                    com.mongodb.client.model.Updates.combine(
+                            com.mongodb.client.model.Updates.set("tasks.$.status", newStatus),
+                            com.mongodb.client.model.Updates.set("tasks.$.color", newColor)));
+            return true;
+        } catch (Exception e) {
+            System.out.println("Task update error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteTaskFromGroup(org.bson.types.ObjectId groupId, String taskName) {
+        try {
+            rawGroupCollection.updateOne(
+                    com.mongodb.client.model.Filters.eq("_id", groupId),
+                    new org.bson.Document("$pull",
+                            new org.bson.Document("tasks", new org.bson.Document("name", taskName))));
+            System.out.println("Task deleted from database: " + taskName);
+            return true;
+        } catch (Exception e) {
+            System.out.println("Deletion error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteEvent(org.bson.types.ObjectId eventId) {
+        try {
+            rawCalendarCollection.deleteOne(com.mongodb.client.model.Filters.eq("_id", eventId));
+            System.out.println("Event deleted: " + eventId);
+            return true;
+        } catch (Exception e) {
+            System.out.println("Event deletion error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

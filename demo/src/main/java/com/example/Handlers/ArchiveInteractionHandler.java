@@ -1,4 +1,4 @@
-package com.example.Handlers;
+﻿package com.example.Handlers;
 
 import com.example.Entity.AcademicFile;
 import com.example.Entity.Group;
@@ -37,17 +37,15 @@ public class ArchiveInteractionHandler {
                 }
             }
 
-            // Create Database Entity
-            AcademicFile newFile = new AcademicFile(
+AcademicFile newFile = new AcademicFile(
                     fileName,
-                    rawFile.getAbsolutePath(), // Storing path as download link
+                    rawFile.getAbsolutePath(),  
                     uploader,
-                    FileType.LECTURE_NOTE, // Defaulting to OTHER, ideally logic detects extension
+                    FileType.LECTURE_NOTE,  
                     vis,
                     courseCode);
 
-            // Save to Cloud Repository
-            repository.saveFileMetadata(newFile);
+repository.saveFileMetadata(newFile);
             System.out.println("File metadata saved to DB: " + fileName);
         }
     }

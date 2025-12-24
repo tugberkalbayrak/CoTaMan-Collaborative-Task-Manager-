@@ -1,12 +1,12 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 public class WeeklyLecture {
-    private String courseCode; // e.g., "MATH 102 - 001"
-    private String room; // e.g., "B-103"
-    private String type; // e.g., "Face-to-face Lecture"
+    private String courseCode;  
+    private String room;  
+    private String type;  
     private DayOfWeek day;
     private LocalTime startTime;
     private LocalTime endTime;

@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 public class CreateGroupPopup extends VBox {
 
     private Runnable onCancel;
-    // İsim ve Ders Kodu döner
+     
     private java.util.function.BiConsumer<String, String> onCreate;
 
     private CoTaTextField nameField;
@@ -33,21 +33,18 @@ public class CreateGroupPopup extends VBox {
         nameField = new CoTaTextField("Group Name (e.g. Study Bros)");
         courseField = new CoTaTextField("Course Code (e.g. CS102)");
 
-        // Butonlar
-        CoTaButton createBtn = new CoTaButton("Create", CoTaButton.StyleType.SECONDARY);
+CoTaButton createBtn = new CoTaButton("Create", CoTaButton.StyleType.SECONDARY);
         CoTaButton cancelBtn = new CoTaButton("Cancel", CoTaButton.StyleType.DANGER);
 
         HBox actionBox = new HBox(10, cancelBtn, createBtn);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // İptal Butonu
-        cancelBtn.setOnAction(e -> {
+cancelBtn.setOnAction(e -> {
             if (onCancel != null)
                 onCancel.run();
         });
 
-        // Oluştur Butonu
-        createBtn.setOnAction(e -> {
+createBtn.setOnAction(e -> {
             if (onCreate != null && !nameField.getText().isEmpty()) {
                 onCreate.accept(nameField.getText(), courseField.getText());
             }

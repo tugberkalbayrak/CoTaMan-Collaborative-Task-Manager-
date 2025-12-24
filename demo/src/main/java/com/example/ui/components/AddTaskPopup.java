@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 public class AddTaskPopup extends VBox {
 
     private Runnable onCancel;
-    private java.util.function.BiConsumer<String, String> onAdd; // İsim ve Tarih döner
+    private java.util.function.BiConsumer<String, String> onAdd;  
 
     private CoTaTextField taskNameField;
     private CoTaTextField dateField;

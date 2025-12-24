@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,8 +15,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import com.example.ui.components.*;
-import com.example.Manager.SessionManager; // Backend Bağlantısı
-import com.example.Entity.AcademicFile; // Veri Modeli
+import com.example.Manager.SessionManager;  
+import com.example.Entity.AcademicFile;  
 import java.util.List;
 
 public class ArchiveView extends StackPane {
@@ -24,13 +24,12 @@ public class ArchiveView extends StackPane {
     private NavBar navBar;
     private StackPane overlayContainer;
 
-    // Listeyi sınıf seviyesine çıkardık ki her yerden erişip yenileyebilelim
-    private VBox fileListVBox;
+private VBox fileListVBox;
 
-    private boolean isPrivateView = false; // Hangi moddayız?
-    private Label pathLabel; // Yolu dinamik değiştirmek için
+    private boolean isPrivateView = false;  
+    private Label pathLabel;  
 
-    private String selectedCourseCode = null; // Seçili dersi tutmak için
+    private String selectedCourseCode = null;  
 
     public ArchiveView() {
         BorderPane mainLayout = new BorderPane();
@@ -43,8 +42,7 @@ public class ArchiveView extends StackPane {
 
         mainLayout.setCenter(createContentArea());
 
-        // Overlay (Pop-up perdesi)
-        overlayContainer = new StackPane();
+overlayContainer = new StackPane();
         overlayContainer.setVisible(false);
         overlayContainer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.4);");
 
@@ -66,8 +64,7 @@ public class ArchiveView extends StackPane {
         VBox box = new VBox(15);
         box.setPadding(new Insets(20));
 
-        // --- ÜST BAR ---
-        HBox topBar = new HBox(15);
+HBox topBar = new HBox(15);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
         Button searchTriggerBtn = createIconButton(
@@ -87,15 +84,12 @@ public class ArchiveView extends StackPane {
 
         topBar.getChildren().addAll(searchTriggerBtn, filterIconBtn, spacer, searchFolderBtn, uploadBtn);
 
-        // --- BREADCRUMB ---
-        pathLabel = new Label("Public Archive > All Files");
+pathLabel = new Label("Public Archive > All Files");
         pathLabel.setStyle("-fx-text-fill: " + Theme.TEXT_GRAY + "; -fx-font-style: italic;");
 
-        // --- DOSYA LİSTESİ ---
-        fileListVBox = new VBox(10); // VBox'ı başlattık
+fileListVBox = new VBox(10);  
 
-        // Sayfa açılır açılmaz veritabanından verileri çek
-        refreshFileList();
+refreshFileList();
 
         ScrollPane scroll = new ScrollPane(fileListVBox);
         scroll.setFitToWidth(true);
@@ -105,18 +99,17 @@ public class ArchiveView extends StackPane {
         return box;
     }
 
-    // --- VERİTABANINDAN LİSTEYİ YENİLEME METODU ---
-    private void refreshFileList() {
-        // 1. Mevcut listeyi temizle
+private void refreshFileList() {
+         
         fileListVBox.getChildren().clear();
-        // 2. Moda göre dosyaları çek (Public veya Private)
+         
         List<AcademicFile> dbFiles;
         if (isPrivateView) {
-            dbFiles = SessionManager.getInstance().getPrivateFiles(); // Sadece benimkiler
+            dbFiles = SessionManager.getInstance().getPrivateFiles();  
         } else if (selectedCourseCode != null) {
             dbFiles = SessionManager.getInstance().getFilesByCourse(selectedCourseCode);
         } else {
-            dbFiles = SessionManager.getInstance().getPublicFiles(); // Herkesinkiler
+            dbFiles = SessionManager.getInstance().getPublicFiles();  
         }
         if (dbFiles.isEmpty()) {
             Label emptyLbl = new Label(isPrivateView ? "You have no private files." : "No public files found.");
@@ -128,8 +121,7 @@ public class ArchiveView extends StackPane {
 
                 FileItem item = new FileItem(file.getFileName(), "Recently", uploaderName);
 
-                // Tıklayınca Açma
-                item.setOnAction(() -> {
+item.setOnAction(() -> {
                     SessionManager.getInstance().getRepository().openFile(file);
                 });
 
@@ -138,8 +130,7 @@ public class ArchiveView extends StackPane {
         }
     }
 
-    // --- UPLOAD POPUP VE KAYIT ---
-    private void showUploadPopup() {
+private void showUploadPopup() {
         UploadFilePopup popup = new UploadFilePopup();
 
         popup.setOnCancel(() -> {
@@ -148,19 +139,18 @@ public class ArchiveView extends StackPane {
         });
 
         popup.setOnSave(() -> {
-            // Verileri Formdan Al
+             
             String name = popup.getFileName();
             String course = popup.getCourse();
             String type = popup.getFileType();
             String visibility = popup.getVisibility();
 
-            // --- YENİ KISIM: Seçilen Dosyanın Yolunu Al ---
-            java.io.File selectedFile = popup.getSelectedFile();
+java.io.File selectedFile = popup.getSelectedFile();
             String filePath = (selectedFile != null) ? selectedFile.getAbsolutePath() : "";
             if (name != null && !name.isEmpty()) {
-                // 1. Veritabanına Kaydet (Dosya Yolu ile birlikte)
+                 
                 SessionManager.getInstance().uploadFile(name, filePath, course, type, visibility);
-                // 2. Listeyi Yenile (Anında görünsün)
+                 
                 refreshFileList();
             }
             overlayContainer.setVisible(false);
@@ -175,8 +165,7 @@ public class ArchiveView extends StackPane {
         overlayContainer.setVisible(true);
     }
 
-    // --- SEARCH PANEL (Görsel Kalıyor) ---
-    private void showSearchPanel() {
+private void showSearchPanel() {
         SearchFilterPopup popup = new SearchFilterPopup();
 
         popup.setOnSave(() -> {
@@ -186,7 +175,7 @@ public class ArchiveView extends StackPane {
 
         popup.setOnClear(() -> {
             System.out.println("Filtreler temizlendi");
-            refreshFileList(); // Temizleyince tüm listeyi geri getir
+            refreshFileList();  
         });
 
         StackPane.setAlignment(popup, Pos.TOP_RIGHT);
@@ -197,8 +186,7 @@ public class ArchiveView extends StackPane {
         overlayContainer.setVisible(true);
     }
 
-    // --- SIDEBAR (Aynı kalıyor) ---
-    private VBox createSidebar() {
+private VBox createSidebar() {
         VBox box = new VBox(10);
         box.setPadding(new Insets(20));
         box.setPrefWidth(250);
@@ -206,15 +194,14 @@ public class ArchiveView extends StackPane {
         Label title = new Label("Folders");
         title.setFont(Theme.getHeaderFont());
         title.setStyle("-fx-text-fill: " + Theme.SECONDARY_COLOR + "; -fx-font-size: 20px;");
-        // --- GİZLİ KÖK ---
+         
         TreeItem<String> root = new TreeItem<>("Root");
-        // 1. Private Archive (Sadece bana özel)
+         
         TreeItem<String> privateItem = new TreeItem<>("Private Archive (My Files)");
 
-        // 2. Public Archive (Herkese açık)
-        TreeItem<String> publicItem = new TreeItem<>("Public Archive");
-        publicItem.setExpanded(true); // Alt klasörleri açık gelsin
-        // Public Alt Klasörler
+TreeItem<String> publicItem = new TreeItem<>("Public Archive");
+        publicItem.setExpanded(true);  
+         
         TreeItem<String> csFolder = new TreeItem<>("CS");
         csFolder.getChildren().addAll(new TreeItem<>("CS102"), new TreeItem<>("CS201"));
         publicItem.getChildren().add(csFolder);
@@ -224,31 +211,30 @@ public class ArchiveView extends StackPane {
         publicItem.getChildren().add(mathFolder);
         root.getChildren().addAll(privateItem, publicItem);
         TreeView<String> treeView = new TreeView<>(root);
-        treeView.setShowRoot(false); // "Root" yazısını gizle
+        treeView.setShowRoot(false);  
         treeView.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-control-inner-background: " + Theme.PANEL_COLOR1 + ";" +
                         "-fx-text-fill: white;");
-        // --- TIKLAMA OLAYI (Seçime göre liste yenileme) ---
+         
         treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 String val = newVal.getValue();
 
-                // Eğer seçilen değer bir ders kodu ise (Örn: CS102, MATH101)
-                if (val.matches("[A-Z]{2,4}[0-9]{3}")) {
+if (val.matches("[A-Z]{2,4}[0-9]{3}")) {
                     selectedCourseCode = val;
                     isPrivateView = false;
                     if (pathLabel != null)
                         pathLabel.setText("Public Archive > " + val);
                 }
-                // Private Archive seçildiyse
+                 
                 else if (val.contains("Private")) {
                     selectedCourseCode = null;
                     isPrivateView = true;
                     if (pathLabel != null)
                         pathLabel.setText("Private Archive > My Files");
                 }
-                // Diğer durumlar (Public Archive kökü vb.)
+                 
                 else {
                     selectedCourseCode = null;
                     isPrivateView = false;

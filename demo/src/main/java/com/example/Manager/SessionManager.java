@@ -1,4 +1,4 @@
-package com.example.Manager;
+﻿package com.example.Manager;
 
 import com.example.database.CloudRepository;
 import com.example.Entity.User;
@@ -11,7 +11,7 @@ import com.example.Entity.Visibility;
 import com.example.Entity.WeeklyLecture;
 import com.example.WebScraping.SRSScraper;
 import com.example.Handlers.AuthenticationHandler;
-import com.example.ui.components.Task; // Task import
+import com.example.ui.components.Task;
 import com.example.Services.ArchiveService.CalendarService.IntelligentMeetingSchedular;
 import com.example.Entity.TimeSlot;
 import java.time.Duration;
@@ -45,29 +45,23 @@ public class SessionManager {
         return instance;
     }
 
-    // --- YENİ: GÖREV EKLEME ---
     public void addTask(Group group, String taskName, String date, String status) {
         if (group == null || currentUser == null)
             return;
 
-        // Yeni görev oluştur
         com.example.ui.components.Task newTask = new com.example.ui.components.Task(
                 taskName,
                 currentUser.getFullName(),
                 date,
                 status,
-                "#E67E22" // Turuncu
-        );
+                "#E67E22");
 
-        // 1. Ekrandaki listeye ekle (Anında görünsün diye)
         if (group.getTasks() == null)
             group.setTasks(new ArrayList<>());
         group.getTasks().add(newTask);
 
-        // 2. Veritabanına kaydet (Kalıcı olsun diye)
         repository.addTaskToGroup(group.getId(), newTask);
     }
-    // --- GRUP & ARKADAŞ ---
 
     public void createGroup(String n, String c) {
         if (currentUser == null)
@@ -99,23 +93,21 @@ public class SessionManager {
         return null;
     }
 
-    // --- LOGIN & REGISTER ---
-
     public boolean login(String email, String password) {
-        System.out.println("--- LOGIN İŞLEMİ ---");
+        System.out.println("--- LOGIN PROCESS ---");
         User user = repository.getUserByEmail(email);
 
         if (user == null) {
-            System.out.println("HATA: Kullanıcı bulunamadı.");
+            System.out.println("ERROR: User not found.");
             return false;
         }
 
         if (user.getPassword() != null && user.getPassword().equals(password)) {
             this.currentUser = user;
-            System.out.println("Giriş Başarılı: " + user.getFullName());
+            System.out.println("Login Successful: " + user.getFullName());
             return true;
         } else {
-            System.out.println("HATA: Şifre yanlış.");
+            System.out.println("ERROR: Incorrect password.");
             return false;
         }
     }
@@ -134,8 +126,6 @@ public class SessionManager {
         repository.saveUser(newUser);
         return true;
     }
-
-    // --- SRS & TAKVİM ---
 
     public void startSrsLogin(String id, String pass, java.util.function.Consumer<Integer> callback) {
         new Thread(() -> {
@@ -192,13 +182,30 @@ public class SessionManager {
         return repository.getEventsForUser(currentUser.getId());
     }
 
-    public void addEvent(String title, String s, String e, Importance i) {
+    public String addEvent(String title, String startIso, String endIso, Importance imp) {
         if (currentUser == null)
-            return;
+            return "User not logged in";
+
         try {
-            repository.saveEvent(
-                    new CalendarEvent(currentUser, title, "Manual", LocalDateTime.parse(s), LocalDateTime.parse(e), i));
-        } catch (Exception x) {
+            LocalDateTime start = LocalDateTime.parse(startIso);
+            LocalDateTime end = LocalDateTime.parse(endIso);
+
+            CalendarEvent newEvent = new CalendarEvent(currentUser, title, "Manual", start, end, imp);
+
+            List<CalendarEvent> existingEvents = getUserEvents();
+            for (CalendarEvent existing : existingEvents) {
+
+                if (existing.overlaps(newEvent)) {
+                    return "Conflict detected! You already have '" + existing.getTitle() + "' at this time.";
+                }
+            }
+
+            repository.saveEvent(newEvent);
+            return "Success";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
         }
     }
 
@@ -206,11 +213,10 @@ public class SessionManager {
         return repository.getPublicFiles();
     }
 
-    // filePath parametresi eklenmiş GÜNCELLENMİŞ uploadFile metodu
     public void uploadFile(String n, String filePath, String c, String t, String v) {
         if (currentUser == null)
             return;
-        // Görünürlük Ayarı
+
         Visibility visibility = Visibility.PUBLIC;
         if (v != null) {
             if (v.contains("Group"))
@@ -218,10 +224,9 @@ public class SessionManager {
             else if (v.contains("Private"))
                 visibility = Visibility.PRIVATE;
         }
-        // Dosya Tipi Ayarı (Null kontrolü eklendi)
-        // Eğer t null ise veya Syllabus değilse varsayılan olarak LECTURE_NOTE atanır.
+
         FileType fileType = (t != null && t.equals("Syllabus")) ? FileType.SYLLABUS : FileType.LECTURE_NOTE;
-        // Dosya yolunu (filePath) AcademicFile içine kaydediyoruz
+
         repository.saveFileMetadata(new AcademicFile(n, filePath, currentUser, fileType, visibility, c));
     }
 
@@ -237,7 +242,6 @@ public class SessionManager {
         if (group == null)
             return new ArrayList<>();
 
-        // A) Üyelerin güncel takvimlerini çek
         List<User> membersWithSchedule = new ArrayList<>();
         for (ObjectId memberId : group.getMemberIds()) {
             User u = repository.getUserById(memberId);
@@ -249,10 +253,8 @@ public class SessionManager {
         }
         group.setMembers(membersWithSchedule);
 
-        // B) Algoritmayı Çalıştır
         IntelligentMeetingSchedular scheduler = new IntelligentMeetingSchedular();
 
-        // 7 günlük tarama, en az 1 saatlik boşluklar
         return scheduler.findCommonSlots(
                 group,
                 Duration.ofHours(1),
@@ -264,21 +266,19 @@ public class SessionManager {
         if (group == null || timeString == null)
             return;
 
-        System.out.println("Toplantı Planlanıyor: " + timeString);
+        System.out.println("Scheduling Meeting: " + timeString);
 
-        // Gelen Format: "25 Dec 2025 - 14:00 - 15:30"
         try {
             String[] parts = timeString.split(" - ");
-            String dateStr = parts[0]; // 25 Dec 2025
-            String startStr = parts[1]; // 14:00
-            String endStr = parts[2]; // 15:30
+            String dateStr = parts[0];
+            String startStr = parts[1];
+            String endStr = parts[2];
 
             DateTimeFormatter dateTimeFmt = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
 
             LocalDateTime start = LocalDateTime.parse(dateStr + " " + startStr, dateTimeFmt);
             LocalDateTime end = LocalDateTime.parse(dateStr + " " + endStr, dateTimeFmt);
 
-            // Tüm üyelere dağıt
             for (ObjectId memberId : group.getMemberIds()) {
                 User member = repository.getUserById(memberId);
                 if (member != null) {
@@ -292,33 +292,33 @@ public class SessionManager {
                     repository.saveEvent(meeting);
                 }
             }
-            System.out.println("✅ Toplantı (" + startStr + "-" + endStr + ") tüm gruba işlendi!");
+            System.out.println("Meeting (" + startStr + "-" + endStr + ") scheduled for the entire group!");
 
         } catch (Exception e) {
-            System.out.println("❌ Tarih formatı hatası: " + e.getMessage());
+            System.out.println("Date format error: " + e.getMessage());
         }
     }
 
     public String addFriend(String friendEmail) {
         if (currentUser == null)
-            return "Giriş yapılmamış!";
+            return "Not logged in!";
         if (friendEmail.equals(currentUser.getEmail()))
-            return "Kendini ekleyemezsin.";
+            return "You cannot add yourself.";
 
         User friend = repository.getUserByEmail(friendEmail);
         if (friend == null)
-            return "Kullanıcı bulunamadı.";
+            return "User not found.";
 
         if (currentUser.getFriends().contains(friend.getId())) {
-            return "Zaten arkadaşsınız.";
+            return "Already friends.";
         }
 
         boolean success = repository.addFriend(currentUser.getId(), friend.getId());
         if (success) {
             currentUser.getFriends().add(friend.getId());
-            return "Başarılı! " + friend.getFullName() + " arkadaş eklendi.";
+            return "Success! " + friend.getFullName() + " added as friend.";
         }
-        return "Hata oluştu.";
+        return "An error occurred.";
     }
 
     public List<User> getFriendsList() {
@@ -326,7 +326,6 @@ public class SessionManager {
         if (currentUser == null)
             return friendList;
 
-        // Kullanıcının arkadaş ID'lerini tek tek User nesnesine çevir
         for (ObjectId friendId : currentUser.getFriends()) {
             User u = repository.getUserById(friendId);
             if (u != null)
@@ -335,28 +334,25 @@ public class SessionManager {
         return friendList;
     }
 
-    // 2. Seçilen Arkadaşı Gruba Ekle
     public String addMemberToGroup(Group group, User friend) {
         if (group == null || friend == null)
-            return "Hata: Seçim geçersiz.";
+            return "Error: Invalid selection.";
 
-        // Zaten üye mi?
         if (group.getMemberIds().contains(friend.getId())) {
-            return "Bu kullanıcı zaten grupta ekli.";
+            return "User is already in the group.";
         }
 
-        // Veritabanına Yaz
         boolean success = repository.addMemberToGroup(group.getId(), friend.getId());
 
         if (success) {
-            // Ekran anında güncellensin diye RAM'deki listeye de ekle
+
             group.getMemberIds().add(friend.getId());
             if (group.getMembers() != null)
                 group.getMembers().add(friend);
 
-            return "Başarılı! " + friend.getFullName() + " eklendi.";
+            return "Success! " + friend.getFullName() + " added.";
         } else {
-            return "Veritabanı hatası oluştu.";
+            return "Database error occurred.";
         }
     }
 
@@ -368,5 +364,56 @@ public class SessionManager {
 
     public List<AcademicFile> getFilesByCourse(String courseCode) {
         return repository.getPublicFilesByCourse(courseCode);
+    }
+
+    public void updateTaskStatus(Group group, String taskName, String newStatus, String newColor) {
+        if (group == null)
+            return;
+
+        boolean success = repository.updateTaskStatus(group.getId(), taskName, newStatus, newColor);
+
+        if (success) {
+            System.out.println("Task updated: " + taskName + " -> " + newStatus);
+
+        } else {
+            System.out.println("Task could not be updated!");
+        }
+    }
+
+    public void deleteTask(Group group, com.example.ui.components.Task task) {
+        if (group == null || task == null)
+            return;
+
+        boolean success = repository.deleteTaskFromGroup(group.getId(), task.getName());
+
+        if (success && group.getTasks() != null) {
+            group.getTasks().remove(task);
+        }
+    }
+
+    public void deleteEvent(CalendarEvent event) {
+        if (event == null || event.getEventId() == null)
+            return;
+        repository.deleteEvent(event.getEventId());
+    }
+
+    public List<AcademicFile> searchFiles(List<AcademicFile> sourceList, String query) {
+        if (query == null || query.isEmpty())
+            return sourceList;
+
+        String lowerQuery = query.toLowerCase();
+        List<AcademicFile> filtered = new ArrayList<>();
+
+        for (AcademicFile file : sourceList) {
+
+            boolean nameMatch = file.getFileName().toLowerCase().contains(lowerQuery);
+            boolean courseMatch = (file.getCourseCode() != null
+                    && file.getCourseCode().toLowerCase().contains(lowerQuery));
+
+            if (nameMatch || courseMatch) {
+                filtered.add(file);
+            }
+        }
+        return filtered;
     }
 }

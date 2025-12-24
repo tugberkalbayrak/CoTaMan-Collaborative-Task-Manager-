@@ -1,4 +1,4 @@
-package com.example.ui.components;
+﻿package com.example.ui.components;
 
 import com.example.Entity.CalendarEvent;
 import com.example.Entity.Importance;
@@ -29,19 +29,19 @@ import java.util.stream.Collectors;
 
 public class CalendarGrid extends BorderPane {
 
-    // --- AYARLAR ---
-    private static final int START_HOUR = 6; // Başlangıç: 06:00
-    private static final int END_HOUR = 24; // Bitiş: 24:00
-    private static final int HOUR_WIDTH = 100; // Her saat 100 piksel genişliğinde
+private static final int START_HOUR = 6;  
+    private static final int END_HOUR = 24;  
+    private static final int HOUR_WIDTH = 100;  
     private static final double MINUTE_WIDTH = HOUR_WIDTH / 60.0;
-    private static final int ROW_HEIGHT = 80; // Her günün satır yüksekliği
+    private static final int ROW_HEIGHT = 80;  
 
     private LocalDate currentWeekStart;
     private List<CalendarEvent> allEvents;
     private Label weekLabel;
 
-    // Satır Referansları
-    private List<Pane> dayRows;
+    private java.util.function.Consumer<CalendarEvent> onDeleteRequest;
+
+private List<Pane> dayRows;
 
     public CalendarGrid() {
         this.allEvents = new ArrayList<>();
@@ -54,11 +54,9 @@ public class CalendarGrid extends BorderPane {
         HBox mainContainer = new HBox(0);
         mainContainer.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
-        // 1. SOL KOLON: Gün Başlıkları
-        VBox daysHeader = createDaysHeader();
+VBox daysHeader = createDaysHeader();
 
-        // 2. SAĞ KOLON: Zaman Çizelgesi
-        ScrollPane timeScroll = createTimeLineArea();
+ScrollPane timeScroll = createTimeLineArea();
         HBox.setHgrow(timeScroll, Priority.ALWAYS);
 
         mainContainer.getChildren().addAll(daysHeader, timeScroll);
@@ -67,16 +65,14 @@ public class CalendarGrid extends BorderPane {
         updateWeekLabel();
     }
 
-    // --- SOL TARAFTAKİ GÜN İSİMLERİ (Özellik Eklendi) ---
-    private VBox createDaysHeader() {
+private VBox createDaysHeader() {
         VBox headerBox = new VBox(0);
         headerBox.setMinWidth(100);
         headerBox.setPrefWidth(100);
         headerBox.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
                 + "; -fx-border-color: #34495E; -fx-border-width: 0 1 0 0;");
 
-        // Üst Boşluk (Header hizası)
-        Region spacer = new Region();
+Region spacer = new Region();
         spacer.setPrefHeight(30);
         headerBox.getChildren().add(spacer);
 
@@ -90,7 +86,7 @@ public class CalendarGrid extends BorderPane {
             VBox dayCell = new VBox(5);
             dayCell.setPrefHeight(ROW_HEIGHT);
             dayCell.setAlignment(Pos.CENTER);
-            // Varsayılan Stil
+             
             String defaultStyle = "-fx-border-color: #34495E; -fx-border-width: 0 0 1 0; -fx-cursor: hand;";
             dayCell.setStyle(defaultStyle);
 
@@ -102,16 +98,13 @@ public class CalendarGrid extends BorderPane {
 
             dayCell.getChildren().addAll(nameLbl, dateLbl);
 
-            // --- YENİ EKLENEN ÖZELLİK: GÜN ÖZETİ PANELİ ---
-            setupDayHoverPopup(dayCell, date);
+setupDayHoverPopup(dayCell, date);
 
-            // Hover Efekti (Arka plan rengi değişsin)
-            dayCell.setOnMouseEntered(e -> {
+dayCell.setOnMouseEntered(e -> {
                 dayCell.setStyle(
                         "-fx-border-color: #34495E; -fx-border-width: 0 0 1 0; -fx-background-color: #34495E; -fx-cursor: hand;");
-                // Popup'ı açma işlemi setupDayHoverPopup içinde zaten var, burası sadece
-                // görsellik
-            });
+
+});
             dayCell.setOnMouseExited(e -> {
                 dayCell.setStyle(defaultStyle);
             });
@@ -121,13 +114,12 @@ public class CalendarGrid extends BorderPane {
         return headerBox;
     }
 
-    // --- YENİ: GÜN ÖZETİ POPUP MANTIĞI ---
-    private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
+private void setupDayHoverPopup(VBox dayNode, LocalDate date) {
         Popup popup = new Popup();
 
         VBox panel = new VBox(5);
         panel.setPadding(new Insets(10));
-        // Koyu Mavi/Gri Arka Plan, Yeşil Çerçeve
+         
         panel.setStyle("-fx-background-color: #2C3E50; -fx-border-color: " + Theme.PRIMARY_COLOR
                 + "; -fx-border-width: 1; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5);");
 
@@ -140,7 +132,7 @@ public class CalendarGrid extends BorderPane {
         boolean hasEvents = false;
 
         if (allEvents != null) {
-            // O güne ait etkinlikleri bul ve saate göre sırala
+             
             List<CalendarEvent> daysEvents = allEvents.stream()
                     .filter(e -> e.getStartTime().toLocalDate().equals(date))
                     .sorted(Comparator.comparing(CalendarEvent::getStartTime))
@@ -151,21 +143,18 @@ public class CalendarGrid extends BorderPane {
                 HBox row = new HBox(8);
                 row.setAlignment(Pos.CENTER_LEFT);
 
-                // Saat
-                String timeStr = event.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+String timeStr = event.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm"));
                 Label timeLbl = new Label(timeStr);
                 timeLbl.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 11px; -fx-font-family: 'Monospaced';");
 
-                // Renkli Nokta
-                Region dot = new Region();
+Region dot = new Region();
                 dot.setPrefSize(8, 8);
                 String color = getEventColor(event.getImportance());
                 dot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 50%;");
 
-                // Başlık
-                Label nameLbl = new Label(event.getTitle());
+Label nameLbl = new Label(event.getTitle());
                 nameLbl.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-                nameLbl.setMaxWidth(150); // Çok uzun isimleri kes
+                nameLbl.setMaxWidth(150);  
 
                 row.getChildren().addAll(timeLbl, dot, nameLbl);
                 eventsList.getChildren().add(row);
@@ -181,13 +170,7 @@ public class CalendarGrid extends BorderPane {
         panel.getChildren().addAll(title, eventsList);
         popup.getContent().add(panel);
 
-        // Olayları Bağla
-        // NOT: createDaysHeader içindeki setOnMouseEntered ile çakışmaması için
-        // oradaki efekti buraya da ekleyebiliriz veya Popup'ı ayrı bir listener ile
-        // açabiliriz.
-        // En temiz yöntem: Event Filter kullanmak veya sırayla eklemek.
-
-        dayNode.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
+dayNode.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_ENTERED, e -> {
             popup.show(dayNode, e.getScreenX() + 15, e.getScreenY());
         });
 
@@ -196,13 +179,11 @@ public class CalendarGrid extends BorderPane {
         });
     }
 
-    // --- SAĞ TARAFTAKİ ZAMAN ALANI (AYNI KALDI) ---
-    private ScrollPane createTimeLineArea() {
+private ScrollPane createTimeLineArea() {
         VBox contentBox = new VBox(0);
         contentBox.setStyle("-fx-background-color: " + Theme.BG_COLOR + ";");
 
-        // ÜST: Saat Etiketleri
-        HBox timeHeader = new HBox(0);
+HBox timeHeader = new HBox(0);
         timeHeader.setPrefHeight(30);
         timeHeader.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
                 + "; -fx-border-color: #34495E; -fx-border-width: 0 0 1 0;");
@@ -225,8 +206,7 @@ public class CalendarGrid extends BorderPane {
         }
         contentBox.getChildren().add(timeHeader);
 
-        // ALT: 7 Günlük Satırlar
-        dayRows = new ArrayList<>();
+dayRows = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             AnchorPane row = new AnchorPane();
             row.setPrefHeight(ROW_HEIGHT);
@@ -310,7 +290,7 @@ public class CalendarGrid extends BorderPane {
     private void setupHoverPopup(StackPane eventNode, CalendarEvent event) {
         Popup popup = new Popup();
 
-        VBox panel = new VBox(5);
+        VBox panel = new VBox(8);  
         panel.setPadding(new Insets(10));
         panel.setStyle("-fx-background-color: #2C3E50; -fx-border-color: " + Theme.PRIMARY_COLOR
                 + "; -fx-border-width: 1; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5);");
@@ -327,16 +307,29 @@ public class CalendarGrid extends BorderPane {
         desc.setMaxWidth(250);
         desc.setStyle("-fx-text-fill: white;");
 
-        panel.getChildren().addAll(title, time, desc);
+Label deleteBtn = new Label("🗑 Delete Event");
+        deleteBtn.setStyle(
+                "-fx-text-fill: #E74C3C; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 5 0 0 0; -fx-border-color: #E74C3C; -fx-border-width: 1 0 0 0;");
+        deleteBtn.setAlignment(Pos.CENTER_RIGHT);
+        deleteBtn.setMaxWidth(Double.MAX_VALUE);
+
+        deleteBtn.setOnMouseClicked(e -> {
+            popup.hide();  
+            if (onDeleteRequest != null)
+                onDeleteRequest.accept(event);  
+        });
+
+panel.getChildren().addAll(title, time, desc, deleteBtn);
         popup.getContent().add(panel);
 
-        eventNode.setOnMouseEntered(e -> {
+eventNode.setOnMouseEntered(e -> {
             popup.show(eventNode, e.getScreenX() + 10, e.getScreenY() + 10);
             eventNode.setStyle(eventNode.getStyle() + "-fx-effect: dropshadow(three-pass-box, white, 10, 0, 0, 0);");
         });
 
         eventNode.setOnMouseExited(e -> {
-            popup.hide();
+
+popup.hide();
             String color = getEventColor(event.getImportance());
             eventNode.setStyle("-fx-background-color: " + color
                     + "; -fx-background-radius: 5; -fx-opacity: 0.9; -fx-border-color: white; -fx-border-width: 0 0 0 3;");
@@ -363,8 +356,7 @@ public class CalendarGrid extends BorderPane {
         refresh();
     }
 
-    // MainView'daki fab butonu için boş metot (Hata vermemesi için)
-    public void addEvent(int dayIndex, int timeIndex, String name, String color) {
+public void addEvent(int dayIndex, int timeIndex, String name, String color) {
     }
 
     private void updateWeekLabel() {
@@ -381,13 +373,17 @@ public class CalendarGrid extends BorderPane {
             return "#95A5A6";
         switch (imp) {
             case MUST:
-                return "#C0392B";
+                return "#C0392B";  
             case OPTIONAL:
-                return "#E67E22";
+                return "#E67E22";  
             case TRIVIA:
-                return "#27AE60";
+                return "#27AE60";  
             default:
-                return "#3498DB";
+                return "#3498DB";  
         }
+    }
+
+    public void setOnDeleteRequest(java.util.function.Consumer<CalendarEvent> action) {
+        this.onDeleteRequest = action;
     }
 }

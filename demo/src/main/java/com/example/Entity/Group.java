@@ -1,9 +1,9 @@
-package com.example.Entity;
+﻿package com.example.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.types.ObjectId;
-import com.example.ui.components.Task; // Task sınıfını tanıtalım
+import com.example.ui.components.Task;  
 
 public class Group {
     private ObjectId id;
@@ -13,13 +13,12 @@ public class Group {
     private List<ObjectId> memberIds;
     private List<AcademicFile> groupArchive;
 
-    // --- YENİ EKLENECEK KISIM ---
-    private List<Task> tasks;
+private List<Task> tasks;
 
     public Group() {
         this.memberIds = new ArrayList<>();
         this.groupArchive = new ArrayList<>();
-        this.tasks = new ArrayList<>(); // Listeyi başlat
+        this.tasks = new ArrayList<>();  
     }
 
     public Group(String name, String courseCode) {
@@ -27,12 +26,10 @@ public class Group {
         this.courseCode = courseCode;
         this.memberIds = new ArrayList<>();
         this.groupArchive = new ArrayList<>();
-        this.tasks = new ArrayList<>(); // Listeyi başlat
+        this.tasks = new ArrayList<>();  
     }
 
-    // ... Diğer Getter/Setter'lar aynı kalsın ...
-
-    public ObjectId getId() {
+public ObjectId getId() {
         return id;
     }
 
@@ -80,8 +77,7 @@ public class Group {
         this.members = members;
     }
 
-    // --- YENİ GETTER & SETTER ---
-    public List<Task> getTasks() {
+public List<Task> getTasks() {
         return tasks;
     }
 

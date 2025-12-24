@@ -13,7 +13,6 @@ public class NavBar extends HBox {
 
     private static final String ICON_HOME = "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z";
     private static final String ICON_ARCHIVE = "M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z";
-    // --- EKLENDİ: Sync İkonu (Döngü okları) ---
     private static final String ICON_SYNC = "M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z";
 
     private static final String ICON_SEARCH = "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z";
@@ -23,7 +22,7 @@ public class NavBar extends HBox {
 
     private Runnable onHomeClick;
     private Runnable onArchiveClick;
-    private Runnable onSyncClick; // EKLENDİ
+    private Runnable onSyncClick;
     private Runnable onSettingsClick;
     private Runnable onNotificationsClick;
     private Runnable onFriendsClick;
@@ -34,7 +33,6 @@ public class NavBar extends HBox {
         this.setAlignment(Pos.CENTER_LEFT);
         this.setStyle("-fx-background-color: #E0E0E0; -fx-background-radius: 0 0 15 15;");
 
-        // --- Butonları Oluştur ---
         Button homeBtn = createIconButton(ICON_HOME);
         homeBtn.setOnAction(e -> {
             if (onHomeClick != null)
@@ -45,17 +43,17 @@ public class NavBar extends HBox {
         archiveBtn.setOnAction(e -> {
             if (onArchiveClick != null)
                 onArchiveClick.run();
+                onArchiveClick.run();
         });
 
-        // 3. YENİ: Arkadaş Butonu (Kullanıcı + Artı İkonu)
         Button friendsBtn = createIconButton(
                 "M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z");
         friendsBtn.setOnAction(e -> {
             if (onFriendsClick != null)
                 onFriendsClick.run();
+                onFriendsClick.run();
         });
 
-        // --- EKLENDİ: Sync Butonu (Yeşil) ---
         Button syncBtn = createIconButton(ICON_SYNC);
         syncBtn.setStyle(
                 "-fx-background-color: #27AE60; -fx-background-radius: 50%; -fx-min-width: 40px; -fx-min-height: 40px; -fx-padding: 0;");
@@ -85,7 +83,7 @@ public class NavBar extends HBox {
         logoLabel.setStyle("-fx-text-fill: " + Theme.SECONDARY_COLOR + "; -fx-font-size: 24px; -fx-font-weight: bold;");
 
         this.getChildren().addAll(
-                homeBtn, archiveBtn, syncBtn, // syncBtn buraya eklendi
+                homeBtn, archiveBtn, syncBtn,
                 searchBtn,
                 spacer,
                 settingsBtn, friendsBtn, notifBtn, logoLabel);
@@ -101,7 +99,7 @@ public class NavBar extends HBox {
 
     public void setOnSyncClick(Runnable action) {
         this.onSyncClick = action;
-    } // EKLENDİ
+    }
 
     public void setOnSettingsClick(Runnable action) {
         this.onSettingsClick = action;

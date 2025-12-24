@@ -1,4 +1,4 @@
-package com.example.database;
+﻿package com.example.database;
 
 import com.example.Entity.Visibility;
 
@@ -19,7 +19,7 @@ import com.example.WebScraping.CalendarScraper;
 
 public class TestApp {
         public static void main(String[] args) {
-                System.out.println("--- CoTaMan Tam Sistem Testi ---");
+                System.out.println("--- CoTaMan Full System Test ---");
 
                 CloudRepository repo = new CloudRepository();
 
@@ -28,7 +28,7 @@ public class TestApp {
 
                 CalendarEvent ders = new CalendarEvent(
                                 u1,
-                                "CS102 Dersi",
+                                "CS102 Course",
                                 "B-Z01",
                                 LocalDateTime.now(),
                                 LocalDateTime.now().plusHours(1),
@@ -36,36 +36,17 @@ public class TestApp {
                 repo.saveEvent(ders);
 
                 List<CalendarEvent> zeynepHocaninDersleri = repo.getEventsForUser(u1.getId());
-                System.out.println(">> Zeynep Hocanın Dersleri: " + zeynepHocaninDersleri);
-
-                // AcademicFile notlar = new AcademicFile("osurdum notlari", "files/notes/", u1,
-                // FileType.LECTURE_NOTE,
-                // Visibility.PUBLIC);
-
-                // repo.saveFileMetadata(notlar);
+                System.out.println(">> Instructor Zeynep's Courses: " + zeynepHocaninDersleri);
 
                 AcademicFile yeniNot = new AcademicFile();
-                yeniNot.setFileName("yeni not");
+                yeniNot.setFileName("new note");
                 yeniNot.setDiskPath("C:\\Users\\lekol\\Downloads\\İstanbul şehri (2).pdf");
                 yeniNot.setUploader(u1);
                 repo.saveFileMetadata(yeniNot);
 
                 CalendarScraper scraper = new CalendarScraper();
 
-                // List<DateInfo> tarihler = scraper.fetchDates();
-                // repo.saveAllDates(tarihler);
-
-                System.out.println("--- Test Tamamlandı ---");
-
-                // AcademicFile secilenDosya = repo.getFileByName(yeniNot.getFileName());
-
-                // AcademicFile dersNotu = new AcademicFile("internetDosyası",
-                // "https://drive.google.com/file/d/1BCMb0E9TRTjhxqjcjZJRWSs46vwNWtH7/view?usp=drive_link",
-                // u1,
-                // FileType.LECTURE_NOTE, Visibility.PUBLIC);
-                // repo.saveFileMetadata(dersNotu);
-
-                // repo.openFile(dersNotu);
+                System.out.println("--- Test Completed ---");
 
         }
 }

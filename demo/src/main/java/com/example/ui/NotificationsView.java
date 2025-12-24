@@ -1,4 +1,4 @@
-package com.example.ui;
+﻿package com.example.ui;
 
 import com.example.Entity.CalendarEvent;
 import com.example.Entity.Importance;
@@ -36,12 +36,9 @@ public class NotificationsView extends VBox {
 
     List<CalendarEvent> events = SessionManager.getInstance().getUserEvents();
 
-    // Filter: Only Exams, Assignments, Quizzes, Projects (Not Lectures)
-    // Filter: Only Exams, Assignments, Quizzes, Projects (Not Lectures) AND
-    // Upcoming
-    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+java.time.LocalDateTime now = java.time.LocalDateTime.now();
     List<CalendarEvent> importantEvents = events.stream()
-        .filter(e -> e.getEndTime().isAfter(now)) // Only upcoming
+        .filter(e -> e.getEndTime().isAfter(now))  
         .filter(this::isImportant)
         .sorted(Comparator.comparing(CalendarEvent::getStartTime))
         .collect(Collectors.toList());
@@ -67,11 +64,11 @@ public class NotificationsView extends VBox {
 
   private boolean isImportant(CalendarEvent e) {
     String t = e.getTitle().toLowerCase();
-    // Exclude lectures
+     
     if (t.contains("lecture") || t.contains("class") || t.contains("lab") || t.contains("recitation")) {
       return false;
     }
-    // Include specific types or High Validity
+     
     return t.contains("exam") || t.contains("midterm") || t.contains("final")
         || t.contains("quiz") || t.contains("assignment") || t.contains("project")
         || e.getImportance() == Importance.CRITICAL || e.getImportance() == Importance.MUST;
@@ -84,23 +81,21 @@ public class NotificationsView extends VBox {
     card.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
         + "; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);");
 
-    // Icon / Side bar
-    Region bar = new Region();
+Region bar = new Region();
     bar.setMinWidth(5);
     bar.setPrefHeight(50);
 
-    // Determine Color
-    String color = "#3498DB"; // Default Blue
+String color = "#3498DB";  
     String t = event.getTitle() != null ? event.getTitle() : "";
 
     if (t.contains("Midterm") || t.contains("Final") || t.contains("Exam")
         || event.getImportance() == Importance.CRITICAL) {
-      color = "#C0392B"; // Red
+      color = "#C0392B";  
     } else if (t.contains("Quiz") || t.contains("Assignment") || t.contains("Project")
         || event.getImportance() == Importance.MUST) {
-      color = "#E67E22"; // Orange
+      color = "#E67E22";  
     } else if (event.getImportance() == Importance.TRIVIA) {
-      color = "#27AE60"; // Green
+      color = "#27AE60";  
     }
 
     bar.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 3;");
@@ -119,8 +114,7 @@ public class NotificationsView extends VBox {
 
     card.getChildren().addAll(bar, content);
 
-    // Hover effect
-    card.setOnMouseEntered(e -> card.setStyle(
+card.setOnMouseEntered(e -> card.setStyle(
         "-fx-background-color: #3E3E3E; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 8, 0, 0, 4);"));
     card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + Theme.PANEL_COLOR1
         + "; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);"));
